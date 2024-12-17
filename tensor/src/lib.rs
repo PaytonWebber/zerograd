@@ -1,3 +1,6 @@
+use std::ops::{Add, Index};
+
+#[derive(Debug, Clone)]
 pub struct Tensor {
     shape: Vec<usize>,
     strides: Vec<usize>,
@@ -48,6 +51,16 @@ impl Tensor {
         }
     }
 
+    pub fn reshape(&mut self, shape: &[usize]) -> Result<(), &'static str> {
+        let new_length: usize = shape.iter().product();
+        let current_length: usize = self.shape.iter().product();
+        if new_length != current_length {
+            return Err("The new shape does not align with the size of the data.");
+        }
+        self.shape = shape.to_vec();
+        Ok(())
+    }
+
     pub fn shape(&self) -> &Vec<usize> {
         &self.shape
     }
@@ -58,5 +71,53 @@ impl Tensor {
 
     pub fn data(&self) -> &Vec<f32> {
         &self.data
+    }
+
+    fn get(&self, indices: &[usize]) -> Option<&f32> {
+        if indices.len() != self.shape.len() {
+            return None;
+        }
+
+        let mut idx: usize = 0;
+        for (i, &dim) in indices.iter().enumerate() {
+            if dim >= self.shape[i] {
+                return None;
+            }
+            idx += dim * self.strides[i];
+        }
+        self.data.get(idx)
+    }
+
+    pub fn add(&self, other: &Tensor) -> Result<Tensor, &'static str> {
+        if self.shape != other.shape {
+            return Err("Shapes of the tensors do not match for addition.");
+        }
+
+        let result_data: Vec<f32> = self
+            .data
+            .iter()
+            .zip(other.data.iter())
+            .map(|(a, b)| a + b)
+            .collect();
+
+        Tensor::new(&self.shape, result_data)
+    }
+}
+
+impl Index<&[usize]> for Tensor {
+    type Output = f32;
+    fn index(&self, indices: &[usize]) -> &Self::Output {
+        self.get(indices).expect("Index out of bounds")
+    }
+}
+
+impl Add<Tensor> for Tensor {
+    type Output = Tensor;
+
+    fn add(self, rhs: Tensor) -> Self::Output {
+        match Tensor::add(&self, &rhs) {
+            Ok(result) => result,
+            Err(_) => panic!("Shapes of the tensors do not match for addition."),
+        }
     }
 }
