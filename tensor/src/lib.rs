@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 #[derive(Debug, Clone)]
 pub struct Tensor {
     shape: Vec<usize>,
@@ -69,5 +71,27 @@ impl Tensor {
 
     pub fn data(&self) -> &Vec<f32> {
         &self.data
+    }
+
+    fn get(&self, indices: &[usize]) -> Option<&f32> {
+        if indices.len() != self.shape.len() {
+            return None;
+        }
+
+        let mut idx: usize = 0;
+        for (i, &dim) in indices.iter().enumerate() {
+            if dim >= self.shape[i] {
+                return None;
+            }
+            idx += dim * self.strides[i];
+        }
+        self.data.get(idx)
+    }
+}
+
+impl Index<&[usize]> for Tensor {
+    type Output = f32;
+    fn index(&self, indices: &[usize]) -> &Self::Output {
+        self.get(indices).expect("Index out of bounds")
     }
 }

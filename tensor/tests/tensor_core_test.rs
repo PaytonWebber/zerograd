@@ -57,8 +57,18 @@ fn reshape_tensor_invalid_shape() {
     let mut a: Tensor = Tensor::ones(&original_shape);
 
     let new_shape: Vec<usize> = vec![7, 6];
-    match a.reshape(&new_shape) {
-        Ok(()) => panic!("The new shape should've been invalid."),
-        Err(_) => (),
+    if let Ok(()) = a.reshape(&new_shape) {
+        panic!("The new shape should've been invalid.")
     }
+}
+
+#[test]
+fn get_element_with_index() {
+    let length: usize = 24;
+    let shape: Vec<usize> = vec![3, 2, 4];
+    let data: Vec<f32> = (0..length).map(|v| v as f32 + 10.0).collect();
+    let a: Tensor = Tensor::new(&shape, data).unwrap();
+
+    let elem: f32 = a[&[1, 0, 3]];
+    assert_eq!(elem, 21.0_f32);
 }
