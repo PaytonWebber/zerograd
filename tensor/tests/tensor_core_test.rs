@@ -27,6 +27,7 @@ fn create_zeros_tensor() {
     assert_eq!(expected_data, *a.data());
 }
 
+#[test]
 fn create_ones_tensor() {
     let shape: Vec<usize> = vec![1, 9, 2, 5];
     let strides: Vec<usize> = vec![90, 10, 5, 1];
@@ -37,4 +38,27 @@ fn create_ones_tensor() {
     assert_eq!(shape, *a.shape());
     assert_eq!(strides, *a.strides());
     assert_eq!(expected_data, *a.data());
+}
+
+#[test]
+fn reshape_tensor_valid_shape() {
+    let original_shape: Vec<usize> = vec![4, 2];
+    let mut a: Tensor = Tensor::ones(&original_shape);
+
+    let new_shape: Vec<usize> = vec![2, 2, 2];
+    a.reshape(&new_shape).unwrap();
+
+    assert_eq!(new_shape, *a.shape());
+}
+
+#[test]
+fn reshape_tensor_invalid_shape() {
+    let original_shape: Vec<usize> = vec![4, 2];
+    let mut a: Tensor = Tensor::ones(&original_shape);
+
+    let new_shape: Vec<usize> = vec![7, 6];
+    match a.reshape(&new_shape) {
+        Ok(()) => panic!("The new shape should've been invalid."),
+        Err(_) => (),
+    }
 }

@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 pub struct Tensor {
     shape: Vec<usize>,
     strides: Vec<usize>,
@@ -46,6 +47,16 @@ impl Tensor {
             strides,
             data: vec![1.0; num_elements],
         }
+    }
+
+    pub fn reshape(&mut self, shape: &[usize]) -> Result<(), &'static str> {
+        let new_length: usize = shape.iter().product();
+        let current_length: usize = self.shape.iter().product();
+        if new_length != current_length {
+            return Err("The new shape does not align with the size of the data.");
+        }
+        self.shape = shape.to_vec();
+        Ok(())
     }
 
     pub fn shape(&self) -> &Vec<usize> {
