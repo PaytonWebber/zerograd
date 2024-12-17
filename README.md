@@ -1,2 +1,2 @@
 # zerograd
-A small, educational Rust library for neural networks, implemented from zero in pure Rust.
+A small, educational library for neural networks, implemented from zero in pure Rust. 
