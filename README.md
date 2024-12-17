@@ -1,2 +1,2 @@
 # zerograd
-A small, educational Rust library for neural nets, inspired by micrograd. It offers a minimal autograd engine and a simple way to build MLPs from scratch.
+A small, educational Rust library for neural networks, implemented from zero in pure Rust.
