@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::ops::{Add, Index};
 
 #[derive(Debug, Clone)]
 pub struct Tensor {
@@ -87,11 +87,37 @@ impl Tensor {
         }
         self.data.get(idx)
     }
+
+    pub fn add(&self, other: &Tensor) -> Result<Tensor, &'static str> {
+        if self.shape != other.shape {
+            return Err("Shapes of the tensors do not match for addition.");
+        }
+
+        let result_data: Vec<f32> = self
+            .data
+            .iter()
+            .zip(other.data.iter())
+            .map(|(a, b)| a + b)
+            .collect();
+
+        Tensor::new(&self.shape, result_data)
+    }
 }
 
 impl Index<&[usize]> for Tensor {
     type Output = f32;
     fn index(&self, indices: &[usize]) -> &Self::Output {
         self.get(indices).expect("Index out of bounds")
+    }
+}
+
+impl Add<Tensor> for Tensor {
+    type Output = Tensor;
+
+    fn add(self, rhs: Tensor) -> Self::Output {
+        match Tensor::add(&self, &rhs) {
+            Ok(result) => result,
+            Err(_) => panic!("Shapes of the tensors do not match for addition."),
+        }
     }
 }

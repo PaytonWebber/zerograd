@@ -72,3 +72,25 @@ fn get_element_with_index() {
     let elem: f32 = a[&[1, 0, 3]];
     assert_eq!(elem, 21.0_f32);
 }
+
+#[test]
+fn tensor_addition_method() {
+    let shape: Vec<usize> = vec![4, 2];
+    let a: Tensor = Tensor::ones(&shape);
+    let b: Tensor = Tensor::ones(&shape);
+    let result: Tensor = a.add(&b).unwrap();
+
+    let expected_data: Vec<f32> = vec![2.0_f32; 8];
+    assert_eq!(expected_data, *result.data());
+}
+
+#[test]
+fn tensor_addition_operator() {
+    let shape: Vec<usize> = vec![4, 2];
+    let a: Tensor = Tensor::ones(&shape);
+    let b: Tensor = Tensor::ones(&shape);
+    let result: Tensor = a + b;
+
+    let expected_data: Vec<f32> = vec![2.0_f32; 8];
+    assert_eq!(expected_data, *result.data());
+}
