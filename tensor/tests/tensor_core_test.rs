@@ -103,6 +103,18 @@ fn permute_tensor_invalid_order() {
 }
 
 #[test]
+fn flatten_tensor() {
+    let length: usize = 42;
+    let expected_data: Vec<f32> = vec![1.0_f32; length];
+    let mut a: Tensor = Tensor::ones(&[7, 6]);
+
+    a.flatten();
+    assert_eq!(vec![1], *a.shape());
+    assert_eq!(vec![1], *a.strides());
+    assert_eq!(expected_data, *a.data());
+}
+
+#[test]
 fn get_element_with_index() {
     let length: usize = 24;
     let shape: Vec<usize> = vec![3, 2, 4];

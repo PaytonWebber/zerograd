@@ -77,6 +77,11 @@ impl Tensor {
         self.reshape(&new_shape)
     }
 
+    pub fn flatten(&mut self) {
+        self.shape = vec![1];
+        self.strides = vec![1];
+    }
+
     pub fn shape(&self) -> &Vec<usize> {
         &self.shape
     }
