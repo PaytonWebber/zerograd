@@ -57,6 +57,7 @@ impl Tensor {
         if new_length != current_length {
             return Err("The new shape does not align with the size of the data.");
         }
+        self.strides = Self::calculate_strides(shape);
         self.shape = shape.to_vec();
         Ok(())
     }

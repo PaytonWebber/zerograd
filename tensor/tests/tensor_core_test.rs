@@ -46,8 +46,10 @@ fn reshape_tensor_valid_shape() {
     let mut a: Tensor = Tensor::ones(&original_shape);
 
     let new_shape: Vec<usize> = vec![2, 2, 2];
+    let new_strides: Vec<usize> = vec![4, 2, 1];
     a.reshape(&new_shape).unwrap();
 
+    assert_eq!(new_strides, *a.strides());
     assert_eq!(new_shape, *a.shape());
 }
 
