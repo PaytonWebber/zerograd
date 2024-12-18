@@ -62,6 +62,14 @@ impl Tensor {
         Ok(())
     }
 
+    pub fn permute(&mut self, order: &[usize]) -> Result<(), &'static str> {
+        if order.len() != self.shape.len() {
+            return Err("The permutation does not align with the current shape.");
+        }
+        let new_shape: Vec<usize> = order.iter().map(|i| self.shape[*i]).collect();
+        self.reshape(&new_shape)
+    }
+
     pub fn shape(&self) -> &Vec<usize> {
         &self.shape
     }

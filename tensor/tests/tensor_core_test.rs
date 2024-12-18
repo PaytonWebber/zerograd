@@ -1,3 +1,5 @@
+use std::usize;
+
 use tensor::Tensor;
 
 #[test]
@@ -61,6 +63,31 @@ fn reshape_tensor_invalid_shape() {
     let new_shape: Vec<usize> = vec![7, 6];
     if let Ok(()) = a.reshape(&new_shape) {
         panic!("The new shape should've been invalid.")
+    }
+}
+
+#[test]
+fn permute_tensor_valid_order() {
+    let original_shape: Vec<usize> = vec![4, 2, 2];
+    let mut a: Tensor = Tensor::ones(&original_shape);
+
+    let permutation: Vec<usize> = vec![1, 0, 2];
+    let new_strides: Vec<usize> = vec![8, 2, 1];
+    let new_shape: Vec<usize> = vec![2, 4, 2];
+    a.permute(&permutation).unwrap();
+
+    assert_eq!(new_strides, *a.strides());
+    assert_eq!(new_shape, *a.shape());
+}
+
+#[test]
+fn permute_tensor_invalid_order() {
+    let original_shape: Vec<usize> = vec![4, 2];
+    let mut a: Tensor = Tensor::ones(&original_shape);
+
+    let permutation: Vec<usize> = vec![2, 0, 1];
+    if let Ok(()) = a.permute(&permutation) {
+        panic!("The permutation should've been invalid.")
     }
 }
 
