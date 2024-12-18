@@ -1,3 +1,4 @@
+use core::fmt;
 use std::ops::{Add, Index};
 
 #[derive(Debug, Clone)]
@@ -126,6 +127,113 @@ impl Tensor {
             .collect();
 
         Tensor::new(&self.shape, result_data)
+    }
+}
+
+fn calculate_data_index(indices: &[usize], strides: &[usize]) -> usize {
+    indices
+        .iter()
+        .enumerate()
+        .map(|(i, &idx)| idx * strides[i])
+        .sum()
+}
+
+fn print_tensor_recursive(
+    f: &mut fmt::Formatter<'_>,
+    data: &[f32],
+    shape: &[usize],
+    strides: &[usize],
+    current_index: &mut [usize],
+    dim: usize,
+    ndims: usize,
+) -> fmt::Result {
+    if ndims == 0 {
+        // 0-D tensor (scalar)
+        if let Some(value) = data.first() {
+            return write!(f, "{:.4}", value);
+        } else {
+            return write!(f, "");
+        }
+    }
+
+    if dim == ndims - 1 {
+        // Last dimension: print elements in a row
+        write!(f, "[")?;
+        for i in 0..shape[dim] {
+            current_index[dim] = i;
+            let idx = calculate_data_index(current_index, strides);
+            if i > 0 {
+                write!(f, ", ")?;
+            }
+            write!(f, "{:.4}", data[idx])?;
+        }
+        write!(f, "]")?;
+    } else {
+        // Not the last dimension
+        write!(f, "[")?;
+        for i in 0..shape[dim] {
+            current_index[dim] = i;
+
+            if i > 0 {
+                // Subsequent slices/rows
+                if dim == 0 {
+                    // Top-level dimension
+                    if ndims >= 3 {
+                        // For 3D or more: blank line between top-level slices
+                        write!(f, "\n\n")?;
+                        // 7 spaces indentation
+                        for _ in 0..7 {
+                            write!(f, " ")?;
+                        }
+                    } else if ndims == 2 {
+                        // For 2D: no blank line, just newline + 8 spaces
+                        writeln!(f)?;
+                        for _ in 0..8 {
+                            write!(f, " ")?;
+                        }
+                    }
+                } else {
+                    // Inner dimension (dim > 0)
+                    // newline + 8 spaces
+                    writeln!(f)?;
+                    for _ in 0..8 {
+                        write!(f, " ")?;
+                    }
+                }
+            }
+
+            print_tensor_recursive(f, data, shape, strides, current_index, dim + 1, ndims)?;
+        }
+        write!(f, "]")?;
+    }
+
+    Ok(())
+}
+
+impl fmt::Display for Tensor {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.shape.is_empty() {
+            // 0-D tensor
+            if let Some(value) = self.data.first() {
+                return write!(f, "tensor({:.4})", value);
+            } else {
+                return write!(f, "tensor()");
+            }
+        }
+
+        write!(f, "tensor(")?;
+        let mut current_index = vec![0; self.shape.len()];
+        print_tensor_recursive(
+            f,
+            &self.data,
+            &self.shape,
+            &self.strides,
+            &mut current_index,
+            0,
+            self.shape.len(),
+        )?;
+        write!(f, ")")?;
+        Ok(())
     }
 }
 

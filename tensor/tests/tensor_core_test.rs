@@ -146,3 +146,23 @@ fn tensor_addition_operator() {
     let expected_data = vec![2.0_f32; 8];
     assert_eq!(expected_data, *result.data());
 }
+
+#[test]
+fn test_display_1d() {
+    let a = Tensor::new(&[3], vec![0.0, 1.0, 2.0]).unwrap();
+    assert_eq!(format!("{}", a), "tensor([0.0000, 1.0000, 2.0000])");
+}
+
+#[test]
+fn test_display_2d() {
+    let t = Tensor::new(&[2, 3], vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0]).unwrap();
+    let expected = "tensor([[0.0000, 1.0000, 2.0000]\n        [3.0000, 4.0000, 5.0000]])";
+    assert_eq!(format!("{}", t), expected);
+}
+
+#[test]
+fn test_display_3d() {
+    let t = Tensor::new(&[2, 2, 2], vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]).unwrap();
+    let expected = "tensor([[[0.0000, 1.0000]\n        [2.0000, 3.0000]]\n\n       [[4.0000, 5.0000]\n        [6.0000, 7.0000]]])";
+    assert_eq!(format!("{}", t), expected);
+}
