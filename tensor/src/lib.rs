@@ -73,8 +73,12 @@ impl Tensor {
             return Err("Index out of range for shape.");
         }
 
-        let new_shape: Vec<usize> = order.iter().map(|i| self.shape[*i]).collect();
-        self.reshape(&new_shape)
+        let new_shape: Vec<usize> = order.iter().map(|&i| self.shape[i]).collect();
+        let new_strides: Vec<usize> = order.iter().map(|&i| self.strides[i]).collect();
+
+        self.shape = new_shape;
+        self.strides = new_strides;
+        Ok(())
     }
 
     pub fn flatten(&mut self) {
