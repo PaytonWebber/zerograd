@@ -109,9 +109,11 @@ fn flatten_tensor() {
     let mut a: Tensor = Tensor::ones(&[7, 6]);
 
     a.flatten();
-    assert_eq!(vec![1], *a.shape());
+    let elem: f32 = a[&[22]];
+    assert_eq!(vec![length], *a.shape());
     assert_eq!(vec![1], *a.strides());
     assert_eq!(expected_data, *a.data());
+    assert_eq!(elem, 1.0_f32);
 }
 
 #[test]

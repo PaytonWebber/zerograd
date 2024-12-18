@@ -78,7 +78,7 @@ impl Tensor {
     }
 
     pub fn flatten(&mut self) {
-        self.shape = vec![1];
+        self.shape = vec![self.shape.iter().product()];
         self.strides = vec![1];
     }
 
