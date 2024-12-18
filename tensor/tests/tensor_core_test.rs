@@ -81,6 +81,17 @@ fn permute_tensor_valid_order() {
 }
 
 #[test]
+fn permute_tensor_index_out_of_range() {
+    let original_shape: Vec<usize> = vec![4, 2];
+    let mut a: Tensor = Tensor::ones(&original_shape);
+
+    let permutation: Vec<usize> = vec![4, 2, 1];
+    if let Ok(()) = a.permute(&permutation) {
+        panic!("The permutation should've been invalid.")
+    }
+}
+
+#[test]
 fn permute_tensor_invalid_order() {
     let original_shape: Vec<usize> = vec![4, 2];
     let mut a: Tensor = Tensor::ones(&original_shape);

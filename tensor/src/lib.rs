@@ -66,6 +66,13 @@ impl Tensor {
         if order.len() != self.shape.len() {
             return Err("The permutation does not align with the current shape.");
         }
+
+        let mut sorted_order: Vec<usize> = order.to_vec();
+        sorted_order.sort();
+        if sorted_order != (0..self.shape.len()).collect::<Vec<_>>() {
+            return Err("Index out of range for shape.");
+        }
+
         let new_shape: Vec<usize> = order.iter().map(|i| self.shape[*i]).collect();
         self.reshape(&new_shape)
     }
