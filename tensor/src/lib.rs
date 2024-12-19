@@ -1,8 +1,5 @@
 use core::{f32, fmt};
-use std::{
-    ops::{Add, Index},
-    usize,
-};
+use std::ops::{Add, Index};
 
 #[derive(Debug, Clone)]
 pub struct Tensor {
@@ -25,16 +22,6 @@ impl Tensor {
         })
     }
 
-    fn calculate_strides(shape: &[usize]) -> Vec<usize> {
-        let length: usize = shape.len();
-        let mut strides = vec![1; length];
-        strides.iter_mut().enumerate().for_each(|(i, stride)| {
-            // stride[i] = (shape[i+1]*shape[i+2]*...*shape[N-1])
-            *stride = shape.iter().take(length).skip(i + 1).product();
-        });
-        strides
-    }
-
     pub fn zeros(shape: &[usize]) -> Self {
         let num_elements: usize = shape.iter().product();
         let strides: Vec<usize> = Self::calculate_strides(shape);
@@ -54,6 +41,18 @@ impl Tensor {
             data: vec![1.0; num_elements],
         }
     }
+
+    fn calculate_strides(shape: &[usize]) -> Vec<usize> {
+        let length: usize = shape.len();
+        let mut strides = vec![1; length];
+        strides.iter_mut().enumerate().for_each(|(i, stride)| {
+            // stride[i] = (shape[i+1]*shape[i+2]*...*shape[N-1])
+            *stride = shape.iter().take(length).skip(i + 1).product();
+        });
+        strides
+    }
+
+    /* MOVEMENT OPS */
 
     pub fn reshape(&mut self, shape: &[usize]) -> Result<(), &'static str> {
         let new_length: usize = shape.iter().product();
@@ -90,36 +89,7 @@ impl Tensor {
         self.strides = vec![1];
     }
 
-    pub fn shape(&self) -> &Vec<usize> {
-        &self.shape
-    }
-
-    pub fn strides(&self) -> &Vec<usize> {
-        &self.strides
-    }
-
-    pub fn data(&self) -> &Vec<f32> {
-        &self.data
-    }
-
-    pub fn data_mut(&mut self) -> &mut Vec<f32> {
-        &mut self.data
-    }
-
-    fn get(&self, indices: &[usize]) -> Option<&f32> {
-        if indices.len() != self.shape.len() {
-            return None;
-        }
-
-        let mut idx: usize = 0;
-        for (i, &dim) in indices.iter().enumerate() {
-            if dim >= self.shape[i] {
-                return None;
-            }
-            idx += dim * self.strides[i];
-        }
-        self.data.get(idx)
-    }
+    /* BINARY OPS */
 
     pub fn add(&self, other: &Tensor) -> Result<Tensor, &'static str> {
         if self.shape != other.shape {
@@ -172,6 +142,39 @@ impl Tensor {
         }
 
         Ok(c)
+    }
+
+    /* GETTERS */
+
+    fn get(&self, indices: &[usize]) -> Option<&f32> {
+        if indices.len() != self.shape.len() {
+            return None;
+        }
+
+        let mut idx: usize = 0;
+        for (i, &dim) in indices.iter().enumerate() {
+            if dim >= self.shape[i] {
+                return None;
+            }
+            idx += dim * self.strides[i];
+        }
+        self.data.get(idx)
+    }
+
+    pub fn shape(&self) -> &Vec<usize> {
+        &self.shape
+    }
+
+    pub fn strides(&self) -> &Vec<usize> {
+        &self.strides
+    }
+
+    pub fn data(&self) -> &Vec<f32> {
+        &self.data
+    }
+
+    pub fn data_mut(&mut self) -> &mut Vec<f32> {
+        &mut self.data
     }
 }
 
@@ -281,6 +284,8 @@ impl fmt::Display for Tensor {
         Ok(())
     }
 }
+
+/* TRAIT IMPLEMENTATIONS */
 
 impl Index<&[usize]> for Tensor {
     type Output = f32;
