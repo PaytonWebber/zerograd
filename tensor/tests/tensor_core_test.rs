@@ -41,6 +41,20 @@ fn create_ones_tensor() {
 }
 
 #[test]
+fn get_element_with_index() {
+    let shape = vec![2, 3];
+    let data = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let a = Tensor::new(&shape, data).unwrap();
+
+    assert_eq!(a[&[0, 0]], 1.0);
+    assert_eq!(a[&[0, 1]], 2.0);
+    assert_eq!(a[&[0, 2]], 3.0);
+    assert_eq!(a[&[1, 0]], 4.0);
+    assert_eq!(a[&[1, 1]], 5.0);
+    assert_eq!(a[&[1, 2]], 6.0);
+}
+
+#[test]
 fn reshape_tensor_valid_shape() {
     let original_shape = vec![4, 2];
     let mut a = Tensor::ones(&original_shape);
@@ -115,14 +129,33 @@ fn flatten_tensor() {
 }
 
 #[test]
-fn get_element_with_index() {
-    let length: usize = 24;
-    let shape = vec![3, 2, 4];
-    let data: Vec<f32> = (0..length).map(|v| v as f32 + 10.0).collect();
-    let a = Tensor::new(&shape, data).unwrap();
+fn test_transpose_2d() {
+    // Create a 2D tensor:
+    // A = [ [1, 2, 3],
+    //       [4, 5, 6] ]
+    let shape = vec![2, 3];
+    let data = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let mut a = Tensor::new(&shape, data).unwrap();
 
-    let elem: f32 = a[&[1, 0, 3]];
-    assert_eq!(elem, 21.0_f32);
+    // Transpose A:
+    // A^T should be:
+    // [ [1, 4],
+    //   [2, 5],
+    //   [3, 6] ]
+    a.transpose().unwrap();
+    assert_eq!(*a.shape(), vec![3, 2]);
+    assert_eq!(*a.strides(), vec![2, 1]);
+
+    // Check values:
+    // A^T[0, 0] = 1, A^T[0, 1] = 4
+    // A^T[1, 0] = 2, A^T[1, 1] = 5
+    // A^T[2, 0] = 3, A^T[2, 1] = 6
+    assert_eq!(a[&[0, 0]], 1.0);
+    assert_eq!(a[&[1, 0]], 2.0);
+    assert_eq!(a[&[2, 0]], 3.0);
+    assert_eq!(a[&[0, 1]], 4.0);
+    assert_eq!(a[&[1, 1]], 5.0);
+    assert_eq!(a[&[2, 1]], 6.0);
 }
 
 #[test]

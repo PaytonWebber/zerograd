@@ -89,6 +89,26 @@ impl Tensor {
         self.strides = vec![1];
     }
 
+    pub fn transpose(&mut self) -> Result<(), &'static str> {
+        if self.shape.len() != 2 {
+            return Err("transpose only supports 2D tensors currently.");
+        }
+
+        let (m, n) = (self.shape[0], self.shape[1]);
+        let mut new_data = vec![0.0_f32; self.data.len()];
+        for i in 0..m {
+            for j in 0..n {
+                let old_idx = i * n + j;
+                let new_idx = j * m + i;
+                new_data[new_idx] = self.data[old_idx];
+            }
+        }
+        self.data = new_data;
+        self.shape = vec![n, m];
+        self.strides = vec![m, 1];
+        Ok(())
+    }
+
     /* BINARY OPS */
 
     pub fn add(&self, other: &Tensor) -> Result<Tensor, &'static str> {
