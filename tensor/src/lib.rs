@@ -1,5 +1,8 @@
-use core::fmt;
-use std::ops::{Add, Index};
+use core::{f32, fmt};
+use std::{
+    ops::{Add, Index},
+    usize,
+};
 
 #[derive(Debug, Clone)]
 pub struct Tensor {
@@ -99,6 +102,10 @@ impl Tensor {
         &self.data
     }
 
+    pub fn data_mut(&mut self) -> &mut Vec<f32> {
+        &mut self.data
+    }
+
     fn get(&self, indices: &[usize]) -> Option<&f32> {
         if indices.len() != self.shape.len() {
             return None;
@@ -127,6 +134,44 @@ impl Tensor {
             .collect();
 
         Tensor::new(&self.shape, result_data)
+    }
+
+    pub fn matmul(&self, other: &Tensor) -> Result<Tensor, &'static str> {
+        let shape_a: Vec<usize> = self.shape().to_vec();
+        let shape_b: Vec<usize> = other.shape().to_vec();
+
+        if shape_a.len() != 2 || shape_b.len() != 2 {
+            return Err("matmul currently only supports 2D tensors.");
+        }
+
+        let m: usize = shape_a[0];
+        let n: usize = shape_a[1];
+        let n_b: usize = shape_b[0]; // should be equal to n
+        let p: usize = shape_b[1];
+
+        if n != n_b {
+            return Err("Dimension mismatch for matmul: A.cols must equal B.rows");
+        }
+
+        let mut c: Tensor = Tensor::zeros(&[m, p]);
+        let a_data = self.data();
+        let b_data = other.data();
+        let c_data = c.data_mut();
+
+        for i in 0..m {
+            for j in 0..p {
+                let mut sum = 0.0_f32;
+                for k in 0..n {
+                    // Compute the indices:
+                    let a_val = a_data[i * n + k];
+                    let b_val = b_data[k * p + j];
+                    sum += a_val * b_val;
+                }
+                c_data[i * p + j] = sum;
+            }
+        }
+
+        Ok(c)
     }
 }
 

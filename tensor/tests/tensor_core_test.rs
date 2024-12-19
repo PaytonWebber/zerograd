@@ -148,6 +148,35 @@ fn tensor_addition_operator() {
 }
 
 #[test]
+fn tensor_matmul() {
+    // A is 2x3:
+    // [1, 2, 3]
+    // [4, 5, 6]
+    let a_data = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let a = Tensor::new(&[2, 3], a_data).unwrap();
+
+    // B is 3x2:
+    // [7,  8]
+    // [9, 10]
+    // [11,12]
+    let b_data = vec![7.0_f32, 8.0, 9.0, 10.0, 11.0, 12.0];
+    let b = Tensor::new(&[3, 2], b_data).unwrap();
+
+    // Expected C = A * B should be 2x2:
+    // C[0,0] = 1*7 + 2*9 + 3*11 = 7 + 18 + 33 = 58
+    // C[0,1] = 1*8 + 2*10 + 3*12 = 8 + 20 + 36 = 64
+    // C[1,0] = 4*7 + 5*9 + 6*11 = 28 + 45 + 66 = 139
+    // C[1,1] = 4*8 + 5*10 + 6*12 = 32 + 50 + 72 = 154
+    let expected_data = vec![58.0_f32, 64.0, 139.0, 154.0];
+
+    let c = a.matmul(&b).expect("Matrix multiplication failed");
+    println!("{}", c);
+
+    assert_eq!(c.shape(), &[2, 2]);
+    assert_eq!(*c.data(), expected_data);
+}
+
+#[test]
 fn test_display_1d() {
     let a = Tensor::new(&[3], vec![0.0, 1.0, 2.0]).unwrap();
     assert_eq!(format!("{}", a), "tensor([0.0000, 1.0000, 2.0000])");
