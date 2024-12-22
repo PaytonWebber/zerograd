@@ -166,7 +166,7 @@ impl Tensor {
 
     /* GETTERS */
 
-    fn get(&self, indices: &[usize]) -> Option<&f32> {
+    pub fn get(&self, indices: &[usize]) -> Option<&f32> {
         if indices.len() != self.shape.len() {
             return None;
         }
