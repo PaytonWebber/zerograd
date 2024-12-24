@@ -216,7 +216,6 @@ fn print_tensor_recursive(
     ndims: usize,
 ) -> fmt::Result {
     if ndims == 0 {
-        // 0-D tensor (scalar)
         if let Some(value) = data.first() {
             return write!(f, "{:.4}", value);
         } else {
@@ -225,7 +224,6 @@ fn print_tensor_recursive(
     }
 
     if dim == ndims - 1 {
-        // Last dimension: print elements in a row
         write!(f, "[")?;
         for i in 0..shape[dim] {
             current_index[dim] = i;
@@ -237,32 +235,24 @@ fn print_tensor_recursive(
         }
         write!(f, "]")?;
     } else {
-        // Not the last dimension
         write!(f, "[")?;
         for i in 0..shape[dim] {
             current_index[dim] = i;
 
             if i > 0 {
-                // Subsequent slices/rows
                 if dim == 0 {
-                    // Top-level dimension
                     if ndims >= 3 {
-                        // For 3D or more: blank line between top-level slices
                         write!(f, "\n\n")?;
-                        // 7 spaces indentation
                         for _ in 0..7 {
                             write!(f, " ")?;
                         }
                     } else if ndims == 2 {
-                        // For 2D: no blank line, just newline + 8 spaces
                         writeln!(f)?;
                         for _ in 0..8 {
                             write!(f, " ")?;
                         }
                     }
                 } else {
-                    // Inner dimension (dim > 0)
-                    // newline + 8 spaces
                     writeln!(f)?;
                     for _ in 0..8 {
                         write!(f, " ")?;
@@ -281,7 +271,6 @@ fn print_tensor_recursive(
 impl fmt::Display for Tensor {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.shape.is_empty() {
-            // 0-D tensor
             if let Some(value) = self.data.first() {
                 return write!(f, "tensor({:.4})", value);
             } else {
