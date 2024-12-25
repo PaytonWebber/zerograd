@@ -152,7 +152,6 @@ impl Tensor {
             for j in 0..p {
                 let mut sum = 0.0_f32;
                 for k in 0..n {
-                    // Compute the indices:
                     let a_val = a_data[i * n + k];
                     let b_val = b_data[k * p + j];
                     sum += a_val * b_val;
