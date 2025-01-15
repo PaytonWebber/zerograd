@@ -127,40 +127,30 @@ impl Tensor {
     }
 
     pub fn matmul(&self, other: &Tensor) -> Result<Tensor, &'static str> {
-        let shape_a: Vec<usize> = self.shape().to_vec();
-        let shape_b: Vec<usize> = other.shape().to_vec();
-
-        if shape_a.len() != 2 || shape_b.len() != 2 {
-            return Err("matmul currently only supports 2D tensors.");
+        let lhs_shape: &Vec<usize> = self.shape();
+        let rhs_shape: &Vec<usize> = other.shape();
+        if lhs_shape.len() != 2 || rhs_shape.len() != 2 {
+            return Err("matmul requires 2D tensors");
         }
 
-        let m: usize = shape_a[0];
-        let n: usize = shape_a[1];
-        let n_b: usize = shape_b[0]; // should be equal to n
-        let p: usize = shape_b[1];
-
-        if n != n_b {
-            return Err("Dimension mismatch for matmul: A.cols must equal B.rows");
+        let (rows_left, cols_left) = (lhs_shape[0], lhs_shape[1]);
+        let (rows_right, cols_right) = (rhs_shape[0], rhs_shape[1]);
+        if cols_left != rows_right {
+            return Err("Incompatible shapes for matrix multiplication");
         }
 
-        let mut c: Tensor = Tensor::zeros(vec![m, p]);
-        let a_data = self.data();
-        let b_data = other.data();
-        let c_data = c.data_mut();
-
-        for i in 0..m {
-            for j in 0..p {
-                let mut sum = 0.0_f32;
-                for k in 0..n {
-                    let a_val = a_data[i * n + k];
-                    let b_val = b_data[k * p + j];
-                    sum += a_val * b_val;
+        let lhs_data: &Vec<f32> = self.data();
+        let rhs_data: &Vec<f32> = other.data();
+        let mut result_data: Vec<f32> = vec![0.0_f32; rows_left * cols_right];
+        for i in 0..rows_left {
+            for k in 0..cols_left {
+                for j in 0..cols_right {
+                    result_data[i * cols_right + j] +=
+                        lhs_data[i * cols_left + k] * rhs_data[k * cols_right + j];
                 }
-                c_data[i * p + j] = sum;
             }
         }
-
-        Ok(c)
+        Ok(Tensor::new(vec![rows_left, cols_right], result_data).unwrap())
     }
 
     /* GETTERS */
