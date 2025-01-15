@@ -9,12 +9,12 @@ pub struct Tensor {
 }
 
 impl Tensor {
-    pub fn new(shape: &[usize], data: Vec<f32>) -> Result<Self, &'static str> {
+    pub fn new(shape: Vec<usize>, data: Vec<f32>) -> Result<Self, &'static str> {
         let length: usize = shape.iter().product();
         if data.len() != length {
             return Err("Data does not fit within shape");
         }
-        let strides: Vec<usize> = Self::calculate_strides(shape);
+        let strides: Vec<usize> = Self::calculate_strides(&shape);
         Ok(Tensor {
             shape: shape.to_vec(),
             strides,
@@ -22,9 +22,9 @@ impl Tensor {
         })
     }
 
-    pub fn zeros(shape: &[usize]) -> Self {
+    pub fn zeros(shape: Vec<usize>) -> Self {
         let num_elements: usize = shape.iter().product();
-        let strides: Vec<usize> = Self::calculate_strides(shape);
+        let strides: Vec<usize> = Self::calculate_strides(&shape);
         Tensor {
             shape: shape.to_vec(),
             strides,
@@ -32,9 +32,9 @@ impl Tensor {
         }
     }
 
-    pub fn ones(shape: &[usize]) -> Self {
+    pub fn ones(shape: Vec<usize>) -> Self {
         let num_elements: usize = shape.iter().product();
-        let strides: Vec<usize> = Self::calculate_strides(shape);
+        let strides: Vec<usize> = Self::calculate_strides(&shape);
         Tensor {
             shape: shape.to_vec(),
             strides,
@@ -42,7 +42,7 @@ impl Tensor {
         }
     }
 
-    fn calculate_strides(shape: &[usize]) -> Vec<usize> {
+    fn calculate_strides(shape: &Vec<usize>) -> Vec<usize> {
         let length: usize = shape.len();
         let mut strides = vec![1; length];
         strides.iter_mut().enumerate().for_each(|(i, stride)| {
@@ -54,18 +54,18 @@ impl Tensor {
 
     /* MOVEMENT OPS */
 
-    pub fn reshape(&mut self, shape: &[usize]) -> Result<(), &'static str> {
+    pub fn reshape(&mut self, shape: Vec<usize>) -> Result<(), &'static str> {
         let new_length: usize = shape.iter().product();
         let current_length: usize = self.shape.iter().product();
         if new_length != current_length {
             return Err("The new shape does not align with the size of the data.");
         }
-        self.strides = Self::calculate_strides(shape);
+        self.strides = Self::calculate_strides(&shape);
         self.shape = shape.to_vec();
         Ok(())
     }
 
-    pub fn permute(&mut self, order: &[usize]) -> Result<(), &'static str> {
+    pub fn permute(&mut self, order: Vec<usize>) -> Result<(), &'static str> {
         if order.len() != self.shape.len() {
             return Err("The permutation does not align with the current shape.");
         }
@@ -123,7 +123,7 @@ impl Tensor {
             .map(|(a, b)| a + b)
             .collect();
 
-        Tensor::new(&self.shape, result_data)
+        Tensor::new(self.shape.clone(), result_data)
     }
 
     pub fn matmul(&self, other: &Tensor) -> Result<Tensor, &'static str> {
@@ -143,7 +143,7 @@ impl Tensor {
             return Err("Dimension mismatch for matmul: A.cols must equal B.rows");
         }
 
-        let mut c: Tensor = Tensor::zeros(&[m, p]);
+        let mut c: Tensor = Tensor::zeros(vec![m, p]);
         let a_data = self.data();
         let b_data = other.data();
         let c_data = c.data_mut();
@@ -165,7 +165,7 @@ impl Tensor {
 
     /* GETTERS */
 
-    pub fn get(&self, indices: &[usize]) -> Option<&f32> {
+    pub fn get(&self, indices: Vec<usize>) -> Option<&f32> {
         if indices.len() != self.shape.len() {
             return None;
         }
@@ -295,9 +295,9 @@ impl fmt::Display for Tensor {
 
 /* TRAIT IMPLEMENTATIONS */
 
-impl Index<&[usize]> for Tensor {
+impl Index<Vec<usize>> for Tensor {
     type Output = f32;
-    fn index(&self, indices: &[usize]) -> &Self::Output {
+    fn index(&self, indices: Vec<usize>) -> &Self::Output {
         self.get(indices).expect("Index out of bounds")
     }
 }
