@@ -1,4 +1,4 @@
-use tensor::{is_broadcastable, Tensor};
+use tensor::{compute_broadcast_shape_and_strides, is_broadcastable, Tensor};
 
 #[test]
 fn create_tensor_from_data() {
@@ -260,4 +260,28 @@ fn test_is_broadcastable() {
 
     let result: bool = is_broadcastable(&a, &b);
     assert_eq!(false, result);
+}
+
+#[test]
+fn test_compute_broadcast_shape_and_strides() {
+    let a: Vec<usize> = vec![256, 256, 3];
+    let b: Vec<usize> = vec![3];
+    let (bc_shape, a_bc_strides, b_bc_strides) = compute_broadcast_shape_and_strides(&a, &b);
+    assert_eq!(a, bc_shape);
+    assert_eq!(vec![768, 3, 1], a_bc_strides);
+    assert_eq!(vec![0, 0, 1], b_bc_strides);
+
+    let a: Vec<usize> = vec![15, 3, 5];
+    let b: Vec<usize> = vec![15, 1, 5];
+    let (bc_shape, a_bc_strides, b_bc_strides) = compute_broadcast_shape_and_strides(&a, &b);
+    assert_eq!(a, bc_shape);
+    assert_eq!(vec![15, 5, 1], a_bc_strides);
+    assert_eq!(vec![5, 0, 1], b_bc_strides);
+
+    let a: Vec<usize> = vec![8, 1, 6, 1];
+    let b: Vec<usize> = vec![7, 1, 5];
+    let (bc_shape, a_bc_strides, b_bc_strides) = compute_broadcast_shape_and_strides(&a, &b);
+    assert_eq!(vec![8, 7, 6, 5], bc_shape);
+    assert_eq!(vec![6, 0, 1, 1], a_bc_strides);
+    assert_eq!(vec![0, 5, 0, 1], b_bc_strides);
 }
