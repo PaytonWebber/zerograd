@@ -187,6 +187,19 @@ impl Tensor {
     }
 }
 
+pub fn is_broadcastable(a: &Vec<usize>, b: &Vec<usize>) -> bool {
+    // This is based on NumPy's rules: https://numpy.org/doc/stable/user/basics.broadcasting.html
+    for (i, j) in a.into_iter().rev().zip(b.into_iter().rev()) {
+        if *i == 1 || *j == 1 {
+            continue;
+        }
+        if *i != *j {
+            return false;
+        }
+    }
+    true
+}
+
 fn calculate_data_index(indices: &[usize], strides: &[usize]) -> usize {
     indices
         .iter()

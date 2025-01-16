@@ -1,4 +1,4 @@
-use tensor::Tensor;
+use tensor::{is_broadcastable, Tensor};
 
 #[test]
 fn create_tensor_from_data() {
@@ -227,4 +227,37 @@ fn test_display_3d() {
     let t = Tensor::new(vec![2, 2, 2], vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]).unwrap();
     let expected = "tensor([[[0.0000, 1.0000]\n        [2.0000, 3.0000]]\n\n       [[4.0000, 5.0000]\n        [6.0000, 7.0000]]])";
     assert_eq!(format!("{}", t), expected);
+}
+
+#[test]
+fn test_is_broadcastable() {
+    let a: Vec<usize> = vec![256, 256, 3];
+    let b: Vec<usize> = vec![3];
+
+    let result: bool = is_broadcastable(&a, &b);
+    assert_eq!(true, result);
+
+    let a: Vec<usize> = vec![8, 1, 6, 1];
+    let b: Vec<usize> = vec![7, 1, 5];
+
+    let result: bool = is_broadcastable(&a, &b);
+    assert_eq!(true, result);
+
+    let a: Vec<usize> = vec![15, 3, 5];
+    let b: Vec<usize> = vec![15, 1, 5];
+
+    let result: bool = is_broadcastable(&a, &b);
+    assert_eq!(true, result);
+
+    let a: Vec<usize> = vec![3];
+    let b: Vec<usize> = vec![4];
+
+    let result: bool = is_broadcastable(&a, &b);
+    assert_eq!(false, result);
+
+    let a: Vec<usize> = vec![2, 1];
+    let b: Vec<usize> = vec![8, 4, 3];
+
+    let result: bool = is_broadcastable(&a, &b);
+    assert_eq!(false, result);
 }
