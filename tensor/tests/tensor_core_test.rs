@@ -170,6 +170,27 @@ fn tensor_addition_method() {
 }
 
 #[test]
+fn tensor_broadcasted_addition_method() {
+    let a_shape = vec![4, 3];
+    let b_shape = vec![3];
+    let a_data = vec![
+        0_f32, 0_f32, 0_f32, 10_f32, 10_f32, 10_f32, 20_f32, 20_f32, 20_f32, 30_f32, 30_f32, 30_f32,
+    ];
+    let b_data = vec![1_f32, 2_f32, 3_f32];
+
+    let a_tensor = Tensor::new(a_shape, a_data).unwrap();
+    let b_tensor = Tensor::new(b_shape, b_data).unwrap();
+
+    let c = a_tensor.add(&b_tensor).unwrap();
+    let expected_data = vec![
+        1_f32, 2_f32, 3_f32, 11_f32, 12_f32, 13_f32, 21_f32, 22_f32, 23_f32, 31_f32, 32_f32, 33_f32,
+    ];
+
+    assert_eq!(vec![4, 3], *c.shape());
+    assert_eq!(expected_data, *c.data());
+}
+
+#[test]
 fn tensor_addition_operator() {
     let shape = vec![4, 2];
     let a = Tensor::ones(shape.clone());
@@ -178,6 +199,27 @@ fn tensor_addition_operator() {
 
     let expected_data = vec![2.0_f32; 8];
     assert_eq!(expected_data, *result.data());
+}
+
+#[test]
+fn tensor_broadcasted_addition_operator() {
+    let a_shape = vec![4, 3];
+    let b_shape = vec![3];
+    let a_data = vec![
+        0_f32, 0_f32, 0_f32, 10_f32, 10_f32, 10_f32, 20_f32, 20_f32, 20_f32, 30_f32, 30_f32, 30_f32,
+    ];
+    let b_data = vec![1_f32, 2_f32, 3_f32];
+
+    let a_tensor = Tensor::new(a_shape, a_data).unwrap();
+    let b_tensor = Tensor::new(b_shape, b_data).unwrap();
+
+    let c = a_tensor + b_tensor;
+    let expected_data = vec![
+        1_f32, 2_f32, 3_f32, 11_f32, 12_f32, 13_f32, 21_f32, 22_f32, 23_f32, 31_f32, 32_f32, 33_f32,
+    ];
+
+    assert_eq!(vec![4, 3], *c.shape());
+    assert_eq!(expected_data, *c.data());
 }
 
 #[test]

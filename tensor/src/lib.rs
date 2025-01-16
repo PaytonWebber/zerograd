@@ -112,18 +112,48 @@ impl Tensor {
     /* BINARY OPS */
 
     pub fn add(&self, other: &Tensor) -> Result<Tensor, &'static str> {
-        if !is_broadcastable(self.shape(), other.shape()) {
+        let self_shape = self.shape();
+        let other_shape = other.shape();
+        if !is_broadcastable(self_shape, other_shape) {
             return Err("The tensor shapes are not compatible for addition.");
         }
 
-        let result_data: Vec<f32> = self
-            .data
-            .iter()
-            .zip(other.data.iter())
-            .map(|(a, b)| a + b)
-            .collect();
+        if self_shape == other_shape {
+            let result_data: Vec<f32> = self
+                .data
+                .iter()
+                .zip(other.data.iter())
+                .map(|(a, b)| a + b)
+                .collect();
+            return Tensor::new(self_shape.clone(), result_data);
+        }
 
-        Tensor::new(self.shape.clone(), result_data)
+        let (bc_shape, self_bc_strides, other_bc_strides) =
+            compute_broadcast_shape_and_strides(self_shape, other_shape);
+
+        let self_data = self.data();
+        let other_data = other.data();
+
+        let result_size: usize = bc_shape.iter().product();
+        let mut result_data: Vec<f32> = Vec::with_capacity(result_size);
+
+        for i in 0..result_size {
+            let multi_idx = unravel_index(i, &bc_shape);
+
+            let mut self_offset = 0;
+            for (dim_i, &stride) in self_bc_strides.iter().enumerate() {
+                self_offset += multi_idx[dim_i] * stride;
+            }
+
+            let mut other_offset = 0;
+            for (dim_i, &stride) in other_bc_strides.iter().enumerate() {
+                other_offset += multi_idx[dim_i] * stride;
+            }
+
+            let val = self_data[self_offset] + other_data[other_offset];
+            result_data.push(val);
+        }
+        Tensor::new(bc_shape, result_data)
     }
 
     pub fn matmul(&self, other: &Tensor) -> Result<Tensor, &'static str> {
@@ -185,6 +215,17 @@ impl Tensor {
     pub fn data_mut(&mut self) -> &mut Vec<f32> {
         &mut self.data
     }
+}
+
+fn unravel_index(mut i: usize, shape: &[usize]) -> Vec<usize> {
+    let ndim = shape.len();
+    let mut coords = vec![0; ndim];
+    for j in (0..ndim).rev() {
+        let dim_size = shape[j];
+        coords[j] = i % dim_size;
+        i /= dim_size;
+    }
+    coords
 }
 
 pub fn is_broadcastable(a: &Vec<usize>, b: &Vec<usize>) -> bool {
