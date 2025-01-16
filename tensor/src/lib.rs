@@ -112,18 +112,48 @@ impl Tensor {
     /* BINARY OPS */
 
     pub fn add(&self, other: &Tensor) -> Result<Tensor, &'static str> {
-        if self.shape != other.shape {
-            return Err("Shapes of the tensors do not match for addition.");
+        let self_shape = self.shape();
+        let other_shape = other.shape();
+        if !is_broadcastable(self_shape, other_shape) {
+            return Err("The tensor shapes are not compatible for addition.");
         }
 
-        let result_data: Vec<f32> = self
-            .data
-            .iter()
-            .zip(other.data.iter())
-            .map(|(a, b)| a + b)
-            .collect();
+        if self_shape == other_shape {
+            let result_data: Vec<f32> = self
+                .data
+                .iter()
+                .zip(other.data.iter())
+                .map(|(a, b)| a + b)
+                .collect();
+            return Tensor::new(self_shape.clone(), result_data);
+        }
 
-        Tensor::new(self.shape.clone(), result_data)
+        let (bc_shape, self_bc_strides, other_bc_strides) =
+            compute_broadcast_shape_and_strides(self_shape, other_shape);
+
+        let self_data = self.data();
+        let other_data = other.data();
+
+        let result_size: usize = bc_shape.iter().product();
+        let mut result_data: Vec<f32> = Vec::with_capacity(result_size);
+
+        for i in 0..result_size {
+            let multi_idx = unravel_index(i, &bc_shape);
+
+            let mut self_offset = 0;
+            for (dim_i, &stride) in self_bc_strides.iter().enumerate() {
+                self_offset += multi_idx[dim_i] * stride;
+            }
+
+            let mut other_offset = 0;
+            for (dim_i, &stride) in other_bc_strides.iter().enumerate() {
+                other_offset += multi_idx[dim_i] * stride;
+            }
+
+            let val = self_data[self_offset] + other_data[other_offset];
+            result_data.push(val);
+        }
+        Tensor::new(bc_shape, result_data)
     }
 
     pub fn matmul(&self, other: &Tensor) -> Result<Tensor, &'static str> {
@@ -185,6 +215,68 @@ impl Tensor {
     pub fn data_mut(&mut self) -> &mut Vec<f32> {
         &mut self.data
     }
+}
+
+fn unravel_index(mut i: usize, shape: &[usize]) -> Vec<usize> {
+    let ndim = shape.len();
+    let mut coords = vec![0; ndim];
+    for j in (0..ndim).rev() {
+        let dim_size = shape[j];
+        coords[j] = i % dim_size;
+        i /= dim_size;
+    }
+    coords
+}
+
+pub fn is_broadcastable(a: &Vec<usize>, b: &Vec<usize>) -> bool {
+    // This is based on NumPy's rules: https://numpy.org/doc/stable/user/basics.broadcasting.html
+    for (i, j) in a.into_iter().rev().zip(b.into_iter().rev()) {
+        if *i == 1 || *j == 1 {
+            continue;
+        }
+        if *i != *j {
+            return false;
+        }
+    }
+    true
+}
+
+pub fn compute_broadcast_shape_and_strides(
+    a_shape: &Vec<usize>,
+    b_shape: &Vec<usize>,
+) -> (Vec<usize>, Vec<usize>, Vec<usize>) {
+    let ndims = a_shape.len().max(b_shape.len());
+    let mut a_bc_strides = vec![1; ndims];
+    let mut b_bc_strides = vec![1; ndims];
+    let mut bc_shape = vec![0; ndims];
+    let mut a_dims = vec![0; ndims];
+    let mut b_dims = vec![0; ndims];
+
+    let a_shape_rev: Vec<usize> = a_shape.iter().copied().rev().collect();
+    let b_shape_rev: Vec<usize> = b_shape.iter().copied().rev().collect();
+    for i in 0..ndims {
+        let dim_a = a_shape_rev.get(i).copied().unwrap_or(1);
+        let dim_b = b_shape_rev.get(i).copied().unwrap_or(1);
+        a_dims[ndims - i - 1] = dim_a;
+        b_dims[ndims - i - 1] = dim_b;
+        if i != 0 {
+            if dim_a != dim_b {
+                a_bc_strides[ndims - i - 1] = match dim_a {
+                    1 => 0,
+                    _ => a_dims[ndims - i..].into_iter().product(),
+                };
+                b_bc_strides[ndims - i - 1] = match dim_b {
+                    1 => 0,
+                    _ => b_dims[ndims - i..].into_iter().product(),
+                };
+            } else {
+                a_bc_strides[ndims - i - 1] = a_dims[ndims - i..].into_iter().product();
+                b_bc_strides[ndims - i - 1] = b_dims[ndims - i..].into_iter().product();
+            }
+        }
+        bc_shape[ndims - i - 1] = dim_a.max(dim_b);
+    }
+    (bc_shape, a_bc_strides, b_bc_strides)
 }
 
 fn calculate_data_index(indices: &[usize], strides: &[usize]) -> usize {
