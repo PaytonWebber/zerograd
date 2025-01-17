@@ -225,6 +225,48 @@ fn tensor_broadcasted_addition_operator() {
 #[test]
 fn tensor_mul_method() {
     let a_shape = vec![1, 3];
+    let b_shape = vec![1, 3];
+    let a_data = vec![1_f32, 2_f32, 3_f32];
+    let b_data = vec![3_f32, 2_f32, 1_f32];
+
+    let a_tensor = Tensor::new(a_shape, a_data).unwrap();
+    let b_tensor = Tensor::new(b_shape, b_data).unwrap();
+
+    let c = a_tensor.mul(&b_tensor).unwrap();
+    let expected = vec![3_f32, 4_f32, 3_f32];
+    assert_eq!(expected, *c.data());
+
+    let a_shape = vec![2, 3];
+    let b_shape = vec![2, 3];
+    let a_data = vec![1_f32, 2_f32, 3_f32, 2_f32, 2_f32, 1_f32];
+    let b_data = vec![2_f32, 4_f32, 6_f32, 1_f32, 2_f32, 1_f32];
+
+    let a_tensor = Tensor::new(a_shape, a_data).unwrap();
+    let b_tensor = Tensor::new(b_shape, b_data).unwrap();
+
+    let c = a_tensor.mul(&b_tensor).unwrap();
+    let expected = vec![2_f32, 8_f32, 18_f32, 2_f32, 4_f32, 1_f32];
+    assert_eq!(expected, *c.data());
+}
+
+#[test]
+fn tensor_mul_operator() {
+    let a_shape = vec![1, 3];
+    let b_shape = vec![1, 3];
+    let a_data = vec![1_f32, 2_f32, 3_f32];
+    let b_data = vec![3_f32, 2_f32, 1_f32];
+
+    let a_tensor = Tensor::new(a_shape, a_data).unwrap();
+    let b_tensor = Tensor::new(b_shape, b_data).unwrap();
+
+    let c = a_tensor * b_tensor;
+    let expected = vec![3_f32, 4_f32, 3_f32];
+    assert_eq!(expected, *c.data());
+}
+
+#[test]
+fn tensor_broadcasted_mul_method() {
+    let a_shape = vec![1, 3];
     let b_shape = vec![1];
     let a_data = vec![1_f32, 2_f32, 3_f32];
     let b_data = vec![2_f32];

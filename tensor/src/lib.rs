@@ -1,5 +1,5 @@
 use core::{f32, fmt};
-use std::ops::{Add, Index};
+use std::ops::{Add, Mul, Index};
 
 #[derive(Debug, Clone)]
 pub struct Tensor {
@@ -444,6 +444,17 @@ impl Add<Tensor> for Tensor {
 
     fn add(self, rhs: Tensor) -> Self::Output {
         match Tensor::add(&self, &rhs) {
+            Ok(result) => result,
+            Err(_) => panic!("Shapes of the tensors do not match for addition."),
+        }
+    }
+}
+
+impl Mul<Tensor> for Tensor {
+    type Output = Tensor;
+
+    fn mul(self, rhs: Tensor) -> Self::Output {
+        match Tensor::mul(&self, &rhs) {
             Ok(result) => result,
             Err(_) => panic!("Shapes of the tensors do not match for addition."),
         }
