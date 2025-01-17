@@ -223,6 +223,63 @@ fn tensor_broadcasted_addition_operator() {
 }
 
 #[test]
+fn tensor_mul_method() {
+    let a_shape = vec![1, 3];
+    let b_shape = vec![1, 3];
+    let a_data = vec![1_f32, 2_f32, 3_f32];
+    let b_data = vec![3_f32, 2_f32, 1_f32];
+
+    let a_tensor = Tensor::new(a_shape, a_data).unwrap();
+    let b_tensor = Tensor::new(b_shape, b_data).unwrap();
+
+    let c = a_tensor.mul(&b_tensor).unwrap();
+    let expected = vec![3_f32, 4_f32, 3_f32];
+    assert_eq!(expected, *c.data());
+
+    let a_shape = vec![2, 3];
+    let b_shape = vec![2, 3];
+    let a_data = vec![1_f32, 2_f32, 3_f32, 2_f32, 2_f32, 1_f32];
+    let b_data = vec![2_f32, 4_f32, 6_f32, 1_f32, 2_f32, 1_f32];
+
+    let a_tensor = Tensor::new(a_shape, a_data).unwrap();
+    let b_tensor = Tensor::new(b_shape, b_data).unwrap();
+
+    let c = a_tensor.mul(&b_tensor).unwrap();
+    let expected = vec![2_f32, 8_f32, 18_f32, 2_f32, 4_f32, 1_f32];
+    assert_eq!(expected, *c.data());
+}
+
+#[test]
+fn tensor_mul_operator() {
+    let a_shape = vec![1, 3];
+    let b_shape = vec![1, 3];
+    let a_data = vec![1_f32, 2_f32, 3_f32];
+    let b_data = vec![3_f32, 2_f32, 1_f32];
+
+    let a_tensor = Tensor::new(a_shape, a_data).unwrap();
+    let b_tensor = Tensor::new(b_shape, b_data).unwrap();
+
+    let c = a_tensor * b_tensor;
+    let expected = vec![3_f32, 4_f32, 3_f32];
+    assert_eq!(expected, *c.data());
+}
+
+#[test]
+fn tensor_broadcasted_mul_method() {
+    let a_shape = vec![1, 3];
+    let b_shape = vec![1];
+    let a_data = vec![1_f32, 2_f32, 3_f32];
+    let b_data = vec![2_f32];
+
+    let a_tensor = Tensor::new(a_shape, a_data).unwrap();
+    let b_tensor = Tensor::new(b_shape, b_data).unwrap();
+
+    let c = a_tensor.mul(&b_tensor).unwrap();
+    let expected = vec![2_f32, 4_f32, 6_f32];
+    assert_eq!(expected, *c.data());
+}
+
+#[test]
 fn tensor_matmul() {
     // A is 2x3:
     // [1, 2, 3]
@@ -324,6 +381,6 @@ fn test_compute_broadcast_shape_and_strides() {
     let b: Vec<usize> = vec![7, 1, 5];
     let (bc_shape, a_bc_strides, b_bc_strides) = compute_broadcast_shape_and_strides(&a, &b);
     assert_eq!(vec![8, 7, 6, 5], bc_shape);
-    assert_eq!(vec![6, 0, 1, 1], a_bc_strides);
+    assert_eq!(vec![6, 0, 1, 0], a_bc_strides);
     assert_eq!(vec![0, 5, 0, 1], b_bc_strides);
 }
