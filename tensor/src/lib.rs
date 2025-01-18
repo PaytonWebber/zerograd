@@ -1,5 +1,5 @@
 use core::{f32, fmt};
-use std::ops::{Add, Mul, Index};
+use std::ops::{Add, Mul, Div, Index};
 
 #[derive(Debug, Clone)]
 pub struct Tensor {
@@ -195,6 +195,50 @@ impl Tensor {
             }
 
             let val = self_data[self_offset] * other_data[other_offset];
+            result_data.push(val);
+        }
+        Tensor::new(bc_shape, result_data)
+    }
+
+    pub fn div(&self, other: &Tensor) -> Result<Tensor, &'static str> {
+        let self_shape = self.shape();
+        let other_shape = other.shape();
+        if !is_broadcastable(self_shape, other_shape) {
+            return Err("The tensor shapes are not compatible for division.");
+        }
+
+        if self_shape == other_shape {
+            let result_data: Vec<f32> = self
+                .data
+                .iter()
+                .zip(other.data.iter())
+                .map(|(a, b)| a / b)
+                .collect();
+            return Tensor::new(self_shape.clone(), result_data);
+        }
+
+        let (bc_shape, self_bc_strides, other_bc_strides) =
+            compute_broadcast_shape_and_strides(self_shape, other_shape);
+
+        let result_size = bc_shape.iter().product();
+        let mut result_data: Vec<f32> = Vec::with_capacity(result_size);
+        let self_data = self.data();
+        let other_data = other.data();
+        
+        for i in 0..result_size {
+            let multi_idx = unravel_index(i, &bc_shape);
+
+            let mut self_offset = 0;
+            for (dim_i, &stride) in self_bc_strides.iter().enumerate() {
+                self_offset += multi_idx[dim_i] * stride;
+            }
+
+            let mut other_offset = 0;
+            for (dim_i, &stride) in other_bc_strides.iter().enumerate() {
+                other_offset += multi_idx[dim_i] * stride;
+            }
+
+            let val = self_data[self_offset] / other_data[other_offset];
             result_data.push(val);
         }
         Tensor::new(bc_shape, result_data)
@@ -456,7 +500,18 @@ impl Mul<Tensor> for Tensor {
     fn mul(self, rhs: Tensor) -> Self::Output {
         match Tensor::mul(&self, &rhs) {
             Ok(result) => result,
-            Err(_) => panic!("Shapes of the tensors do not match for addition."),
+            Err(_) => panic!("Shapes of the tensors do not match for multiplication."),
+        }
+    }
+}
+
+impl Div<Tensor> for Tensor {
+    type Output = Tensor;
+
+    fn div(self, rhs: Tensor) -> Self::Output {
+        match Tensor::div(&self, &rhs) {
+            Ok(result) => result,
+            Err(_) => panic!("Shapes of the tensors do not match for division."),
         }
     }
 }
