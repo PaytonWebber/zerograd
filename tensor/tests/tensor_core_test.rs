@@ -223,6 +223,70 @@ fn tensor_broadcasted_addition_operator() {
 }
 
 #[test]
+fn tensor_subtraction_method() {
+    let shape = vec![4, 2];
+    let a = Tensor::ones(shape.clone());
+    let b = Tensor::ones(shape);
+    let result = a.sub(&b).unwrap();
+
+    let expected_data = vec![0.0_f32; 8];
+    assert_eq!(expected_data, *result.data());
+}
+
+#[test]
+fn tensor_broadcasted_subtraction_method() {
+    let a_shape = vec![4, 3];
+    let b_shape = vec![3];
+    let a_data = vec![
+        0_f32, 0_f32, 0_f32, 10_f32, 10_f32, 10_f32, 20_f32, 20_f32, 20_f32, 30_f32, 30_f32, 30_f32,
+    ];
+    let b_data = vec![1_f32, 2_f32, 3_f32];
+
+    let a_tensor = Tensor::new(a_shape, a_data).unwrap();
+    let b_tensor = Tensor::new(b_shape, b_data).unwrap();
+
+    let c = a_tensor.sub(&b_tensor).unwrap();
+    let expected_data = vec![
+        -1_f32, -2_f32, -3_f32, 9_f32, 8_f32, 7_f32, 19_f32, 18_f32, 17_f32, 29_f32, 28_f32, 27_f32,
+    ];
+
+    assert_eq!(vec![4, 3], *c.shape());
+    assert_eq!(expected_data, *c.data());
+}
+
+#[test]
+fn tensor_subtraction_operator() {
+    let shape = vec![4, 2];
+    let a = Tensor::ones(shape.clone());
+    let b = Tensor::ones(shape);
+    let result = a - b;
+
+    let expected_data = vec![0.0_f32; 8];
+    assert_eq!(expected_data, *result.data());
+}
+
+#[test]
+fn tensor_broadcasted_subtraction_operator() {
+    let a_shape = vec![4, 3];
+    let b_shape = vec![3];
+    let a_data = vec![
+        0_f32, 0_f32, 0_f32, 10_f32, 10_f32, 10_f32, 20_f32, 20_f32, 20_f32, 30_f32, 30_f32, 30_f32,
+    ];
+    let b_data = vec![1_f32, 2_f32, 3_f32];
+
+    let a_tensor = Tensor::new(a_shape, a_data).unwrap();
+    let b_tensor = Tensor::new(b_shape, b_data).unwrap();
+
+    let c = a_tensor - b_tensor;
+    let expected_data = vec![
+        -1_f32, -2_f32, -3_f32, 9_f32, 8_f32, 7_f32, 19_f32, 18_f32, 17_f32, 29_f32, 28_f32, 27_f32,
+    ];
+
+    assert_eq!(vec![4, 3], *c.shape());
+    assert_eq!(expected_data, *c.data());
+}
+
+#[test]
 fn tensor_mul_method() {
     let a_shape = vec![1, 3];
     let b_shape = vec![1, 3];
