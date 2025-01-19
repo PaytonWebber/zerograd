@@ -1,5 +1,7 @@
 use tensor::{compute_broadcast_shape_and_strides, is_broadcastable, Tensor};
 
+/* CREATION OPS */
+
 #[test]
 fn create_tensor_from_data() {
     let shape = vec![3, 4, 3];
@@ -40,19 +42,7 @@ fn create_ones_tensor() {
     assert_eq!(expected_data, *a.data());
 }
 
-#[test]
-fn get_element_with_index() {
-    let shape = vec![2, 3];
-    let data = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0];
-    let a = Tensor::new(shape, data).unwrap();
-
-    assert_eq!(a[vec![0, 0]], 1.0);
-    assert_eq!(a[vec![0, 1]], 2.0);
-    assert_eq!(a[vec![0, 2]], 3.0);
-    assert_eq!(a[vec![1, 0]], 4.0);
-    assert_eq!(a[vec![1, 1]], 5.0);
-    assert_eq!(a[vec![1, 2]], 6.0);
-}
+/* MOVEMENT OPS */
 
 #[test]
 fn reshape_tensor_valid_shape() {
@@ -129,7 +119,7 @@ fn flatten_tensor() {
 }
 
 #[test]
-fn test_transpose_2d() {
+fn transpose_tensor() {
     // Create a 2D tensor:
     // A = [ [1, 2, 3],
     //       [4, 5, 6] ]
@@ -157,6 +147,73 @@ fn test_transpose_2d() {
     assert_eq!(a[vec![1, 1]], 5.0);
     assert_eq!(a[vec![2, 1]], 6.0);
 }
+
+/* REDUCTION OPS */
+
+#[test]
+fn tensor_sum() {
+    let shape = vec![5];
+    let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.sum();
+    assert_eq!(vec![15.0_f32], *result.data());
+
+    let shape = vec![2, 3];
+    let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.sum();
+    assert_eq!(vec![21.0_f32], *result.data());
+
+    let shape = vec![2, 2, 3];
+    let data: Vec<f32> = vec![1.0, 3.0, 3.0, 4.0, 5.0, 6.0, 2.0, 3.0, 4.0, 1.0, 2.0, 2.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.sum();
+    assert_eq!(vec![36.0_f32], *result.data());
+}
+
+#[test]
+fn tensor_sum_dim() {
+    let shape = vec![5];
+    let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.sum_dim(0).unwrap();
+    assert_eq!(vec![15.0_f32], *result.data());
+
+    let shape = vec![2, 3];
+    let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.sum_dim(0).unwrap();
+    assert_eq!(vec![5.0_f32, 7.0_f32, 9.0_f32], *result.data());
+
+    let result = a.sum_dim(1).unwrap();
+    assert_eq!(vec![6.0_f32, 15.0_f32], *result.data());
+
+    let shape = vec![2, 2, 3];
+    let data: Vec<f32> = vec![1.0, 3.0, 3.0, 4.0, 5.0, 6.0, 2.0, 3.0, 4.0, 1.0, 2.0, 2.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.sum_dim(0).unwrap();
+    let expected: Vec<f32> = vec![3.0, 6.0, 7.0, 5.0, 7.0, 8.0];
+    assert_eq!(expected, *result.data());
+    assert_eq!(vec![2, 3], *result.shape());
+
+    let result = a.sum_dim(1).unwrap();
+    let expected: Vec<f32> = vec![5.0, 8.0, 9.0, 3.0, 5.0, 6.0];
+    assert_eq!(expected, *result.data());
+    assert_eq!(vec![2, 3], *result.shape());
+
+    let result = a.sum_dim(2).unwrap();
+    let expected: Vec<f32> = vec![7.0, 15.0, 9.0, 5.0];
+    assert_eq!(expected, *result.data());
+    assert_eq!(vec![2, 2], *result.shape());
+}
+
+/* BINARY OPS */
 
 #[test]
 fn tensor_addition_method() {
@@ -343,7 +400,6 @@ fn tensor_broadcasted_mul_method() {
     assert_eq!(expected, *c.data());
 }
 
-
 #[test]
 fn tensor_div_method() {
     let a_shape = vec![1, 3];
@@ -355,7 +411,7 @@ fn tensor_div_method() {
     let b_tensor = Tensor::new(b_shape, b_data).unwrap();
 
     let c = a_tensor.div(&b_tensor).unwrap();
-    let expected = vec![(1_f32/3_f32), 1_f32, 3_f32];
+    let expected = vec![(1_f32 / 3_f32), 1_f32, 3_f32];
     assert_eq!(expected, *c.data());
 
     let a_shape = vec![2, 3];
@@ -382,7 +438,7 @@ fn tensor_div_operator() {
     let b_tensor = Tensor::new(b_shape, b_data).unwrap();
 
     let c = a_tensor / b_tensor;
-    let expected = vec![(1_f32/3_f32), 1_f32, 3_f32];
+    let expected = vec![(1_f32 / 3_f32), 1_f32, 3_f32];
     assert_eq!(expected, *c.data());
 }
 
@@ -397,7 +453,7 @@ fn tensor_broadcasted_div_method() {
     let b_tensor = Tensor::new(b_shape, b_data).unwrap();
 
     let c = a_tensor.div(&b_tensor).unwrap();
-    let expected = vec![0.5_f32, 1_f32, 3_f32/2_f32];
+    let expected = vec![0.5_f32, 1_f32, 3_f32 / 2_f32];
     assert_eq!(expected, *c.data());
 }
 
@@ -430,21 +486,23 @@ fn tensor_matmul() {
     assert_eq!(*c.data(), expected_data);
 }
 
+/* EXTRA FUNCTIONS */
+
 #[test]
-fn test_display_1d() {
+fn tensor_display_1d() {
     let a = Tensor::new(vec![3], vec![0.0, 1.0, 2.0]).unwrap();
     assert_eq!(format!("{}", a), "tensor([0.0000, 1.0000, 2.0000])");
 }
 
 #[test]
-fn test_display_2d() {
+fn tensor_display_2d() {
     let t = Tensor::new(vec![2, 3], vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0]).unwrap();
     let expected = "tensor([[0.0000, 1.0000, 2.0000]\n        [3.0000, 4.0000, 5.0000]])";
     assert_eq!(format!("{}", t), expected);
 }
 
 #[test]
-fn test_display_3d() {
+fn tensor_display_3d() {
     let t = Tensor::new(vec![2, 2, 2], vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]).unwrap();
     let expected = "tensor([[[0.0000, 1.0000]\n        [2.0000, 3.0000]]\n\n       [[4.0000, 5.0000]\n        [6.0000, 7.0000]]])";
     assert_eq!(format!("{}", t), expected);
@@ -505,4 +563,18 @@ fn test_compute_broadcast_shape_and_strides() {
     assert_eq!(vec![8, 7, 6, 5], bc_shape);
     assert_eq!(vec![6, 0, 1, 0], a_bc_strides);
     assert_eq!(vec![0, 5, 0, 1], b_bc_strides);
+}
+
+#[test]
+fn get_element_with_index() {
+    let shape = vec![2, 3];
+    let data = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    assert_eq!(a[vec![0, 0]], 1.0);
+    assert_eq!(a[vec![0, 1]], 2.0);
+    assert_eq!(a[vec![0, 2]], 3.0);
+    assert_eq!(a[vec![1, 0]], 4.0);
+    assert_eq!(a[vec![1, 1]], 5.0);
+    assert_eq!(a[vec![1, 2]], 6.0);
 }
