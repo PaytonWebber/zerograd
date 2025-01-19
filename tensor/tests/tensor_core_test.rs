@@ -257,6 +257,40 @@ fn tensor_mean_dim() {
     assert_eq!(vec![2.0_f32, 5.0_f32], *result.data());
 }
 
+/* UNARY OPS */
+
+#[test]
+fn tensor_exp() {
+    let shape = vec![2, 3];
+    let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.exp();
+    let expected_result: Vec<f32> = vec![
+        2.7182817, 7.389056, 20.085537, 54.59815, 148.41316, 403.4288,
+    ];
+    assert_eq!(expected_result, *result.data());
+}
+
+#[test]
+fn tensor_log() {
+    let shape = vec![2, 3];
+    let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.log();
+    let expected_result: Vec<f32> = vec![0.0, 0.6931472, 1.0986123, 1.3862944, 1.609438, 1.7917595];
+    assert_eq!(expected_result, *result.data());
+
+    let shape = vec![2];
+    let data: Vec<f32> = vec![1.0, 0.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.log();
+    let expected_result: Vec<f32> = vec![0.0, f32::NEG_INFINITY];
+    assert_eq!(expected_result, *result.data());
+}
+
 /* BINARY OPS */
 
 #[test]
