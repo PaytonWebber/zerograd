@@ -157,10 +157,8 @@ impl Tensor {
     }
 
     pub fn mean(&self) -> Tensor {
-        let sum: f32 = self.data().iter().sum();
-        let size: usize = self.shape().iter().product();
-        let mean: f32 = sum / size as f32;
-        Tensor::new(vec![1], vec![mean]).unwrap()
+        let sum: Tensor = self.sum();
+        &sum / self.shape().iter().product::<usize>() as f32
     }
 
     pub fn mean_dim(&self, dim: usize) -> Result<Tensor, &'static str> {
@@ -168,8 +166,7 @@ impl Tensor {
             return Err("Dimension out of range for the tensor");
         }
         let sum: Tensor = self.sum_dim(dim).unwrap();
-        let size_tensor: Tensor = Tensor::new(vec![1], vec![self.shape()[dim] as f32]).unwrap();
-        Ok(sum / size_tensor)
+        Ok(&sum / self.shape()[dim] as f32)
     }
 
     /* UNARY OPS */
@@ -615,10 +612,10 @@ impl Index<Vec<usize>> for Tensor {
     }
 }
 
-impl Add<Tensor> for Tensor {
+impl Add<&Tensor> for &Tensor {
     type Output = Tensor;
 
-    fn add(self, rhs: Tensor) -> Self::Output {
+    fn add(self, rhs: &Tensor) -> Self::Output {
         match Tensor::add(&self, &rhs) {
             Ok(result) => result,
             Err(_) => panic!("Shapes of the tensors do not match for addition."),
@@ -626,10 +623,28 @@ impl Add<Tensor> for Tensor {
     }
 }
 
-impl Sub<Tensor> for Tensor {
+impl Add<f32> for &Tensor {
     type Output = Tensor;
 
-    fn sub(self, rhs: Tensor) -> Self::Output {
+    fn add(self, rhs: f32) -> Self::Output {
+        let result_data: Vec<f32> = self.data().iter().map(|&x| x + rhs).collect();
+        Tensor::new(self.shape().clone(), result_data).unwrap()
+    }
+}
+
+impl Add<&Tensor> for f32 {
+    type Output = Tensor;
+
+    fn add(self, rhs: &Tensor) -> Self::Output {
+        let result_data: Vec<f32> = rhs.data().iter().map(|&x| x + self).collect();
+        Tensor::new(rhs.shape().clone(), result_data).unwrap()
+    }
+}
+
+impl Sub<&Tensor> for &Tensor {
+    type Output = Tensor;
+
+    fn sub(self, rhs: &Tensor) -> Self::Output {
         match Tensor::sub(&self, &rhs) {
             Ok(result) => result,
             Err(_) => panic!("Shapes of the tensors do not match for subtraction."),
@@ -637,10 +652,28 @@ impl Sub<Tensor> for Tensor {
     }
 }
 
-impl Mul<Tensor> for Tensor {
+impl Sub<f32> for &Tensor {
     type Output = Tensor;
 
-    fn mul(self, rhs: Tensor) -> Self::Output {
+    fn sub(self, rhs: f32) -> Self::Output {
+        let result_data: Vec<f32> = self.data().iter().map(|&x| x - rhs).collect();
+        Tensor::new(self.shape().clone(), result_data).unwrap()
+    }
+}
+
+impl Sub<&Tensor> for f32 {
+    type Output = Tensor;
+
+    fn sub(self, rhs: &Tensor) -> Self::Output {
+        let result_data: Vec<f32> = rhs.data().iter().map(|&x| x - self).collect();
+        Tensor::new(rhs.shape().clone(), result_data).unwrap()
+    }
+}
+
+impl Mul<&Tensor> for &Tensor {
+    type Output = Tensor;
+
+    fn mul(self, rhs: &Tensor) -> Self::Output {
         match Tensor::mul(&self, &rhs) {
             Ok(result) => result,
             Err(_) => panic!("Shapes of the tensors do not match for multiplication."),
@@ -648,13 +681,40 @@ impl Mul<Tensor> for Tensor {
     }
 }
 
-impl Div<Tensor> for Tensor {
+impl Mul<f32> for &Tensor {
     type Output = Tensor;
 
-    fn div(self, rhs: Tensor) -> Self::Output {
+    fn mul(self, rhs: f32) -> Self::Output {
+        let result_data: Vec<f32> = self.data().iter().map(|&x| x * rhs).collect();
+        Tensor::new(self.shape().clone(), result_data).unwrap()
+    }
+}
+
+impl Mul<&Tensor> for f32 {
+    type Output = Tensor;
+
+    fn mul(self, rhs: &Tensor) -> Self::Output {
+        let result_data: Vec<f32> = rhs.data().iter().map(|&x| x * self).collect();
+        Tensor::new(rhs.shape().clone(), result_data).unwrap()
+    }
+}
+
+impl Div<&Tensor> for &Tensor {
+    type Output = Tensor;
+
+    fn div(self, rhs: &Tensor) -> Self::Output {
         match Tensor::div(&self, &rhs) {
             Ok(result) => result,
             Err(_) => panic!("Shapes of the tensors do not match for division."),
         }
+    }
+}
+
+impl Div<f32> for &Tensor {
+    type Output = Tensor;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        let result_data: Vec<f32> = self.data().iter().map(|&x| x / rhs).collect();
+        Tensor::new(self.shape().clone(), result_data).unwrap()
     }
 }

@@ -330,9 +330,16 @@ fn tensor_addition_operator() {
     let shape = vec![4, 2];
     let a = Tensor::ones(shape.clone());
     let b = Tensor::ones(shape);
-    let result = a + b;
+    let result = &a + &b;
 
     let expected_data = vec![2.0_f32; 8];
+    assert_eq!(expected_data, *result.data());
+
+    let result = &a + 2.0_f32;
+    let expected_data = vec![3.0_f32; 8];
+    assert_eq!(expected_data, *result.data());
+
+    let result = 2.0 + &a;
     assert_eq!(expected_data, *result.data());
 }
 
@@ -348,7 +355,7 @@ fn tensor_broadcasted_addition_operator() {
     let a_tensor = Tensor::new(a_shape, a_data).unwrap();
     let b_tensor = Tensor::new(b_shape, b_data).unwrap();
 
-    let c = a_tensor + b_tensor;
+    let c = &a_tensor + &b_tensor;
     let expected_data = vec![
         1_f32, 2_f32, 3_f32, 11_f32, 12_f32, 13_f32, 21_f32, 22_f32, 23_f32, 31_f32, 32_f32, 33_f32,
     ];
@@ -394,9 +401,16 @@ fn tensor_subtraction_operator() {
     let shape = vec![4, 2];
     let a = Tensor::ones(shape.clone());
     let b = Tensor::ones(shape);
-    let result = a - b;
 
+    let result = &a - &b;
     let expected_data = vec![0.0_f32; 8];
+    assert_eq!(expected_data, *result.data());
+
+    let result = &a - 2.0_f32;
+    let expected_data = vec![-1.0_f32; 8];
+    assert_eq!(expected_data, *result.data());
+
+    let result = 2.0 - &a;
     assert_eq!(expected_data, *result.data());
 }
 
@@ -412,7 +426,7 @@ fn tensor_broadcasted_subtraction_operator() {
     let a_tensor = Tensor::new(a_shape, a_data).unwrap();
     let b_tensor = Tensor::new(b_shape, b_data).unwrap();
 
-    let c = a_tensor - b_tensor;
+    let c = &a_tensor - &b_tensor;
     let expected_data = vec![
         -1_f32, -2_f32, -3_f32, 9_f32, 8_f32, 7_f32, 19_f32, 18_f32, 17_f32, 29_f32, 28_f32, 27_f32,
     ];
@@ -458,8 +472,15 @@ fn tensor_mul_operator() {
     let a_tensor = Tensor::new(a_shape, a_data).unwrap();
     let b_tensor = Tensor::new(b_shape, b_data).unwrap();
 
-    let c = a_tensor * b_tensor;
+    let c = &a_tensor * &b_tensor;
     let expected = vec![3_f32, 4_f32, 3_f32];
+    assert_eq!(expected, *c.data());
+
+    let c = &a_tensor * 2.0;
+    let expected = vec![2_f32, 4_f32, 6_f32];
+    assert_eq!(expected, *c.data());
+
+    let c = 2.0 * &a_tensor;
     assert_eq!(expected, *c.data());
 }
 
@@ -515,8 +536,12 @@ fn tensor_div_operator() {
     let a_tensor = Tensor::new(a_shape, a_data).unwrap();
     let b_tensor = Tensor::new(b_shape, b_data).unwrap();
 
-    let c = a_tensor / b_tensor;
+    let c = &a_tensor / &b_tensor;
     let expected = vec![(1_f32 / 3_f32), 1_f32, 3_f32];
+    assert_eq!(expected, *c.data());
+
+    let c = &a_tensor / 2.0;
+    let expected = vec![(1_f32 / 2_f32), 1_f32, 3_f32 / 2.0];
     assert_eq!(expected, *c.data());
 }
 
