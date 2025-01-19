@@ -172,6 +172,30 @@ impl Tensor {
         Ok(sum / size_tensor)
     }
 
+    /* UNARY OPS */
+
+    pub fn exp(&self) -> Tensor {
+        let result_data: Vec<f32> = self.data().iter().map(|&x| x.exp()).collect();
+        Tensor::new(self.shape().clone(), result_data).unwrap()
+    }
+
+    pub fn log(&self) -> Tensor {
+        let result_data: Vec<f32> = self
+            .data()
+            .iter()
+            .map(|&x| {
+                if x == 0.0 {
+                    f32::NEG_INFINITY // log(0) -> -inf
+                } else if x < 0.0 {
+                    f32::NAN // log of negative numbers is undefined
+                } else {
+                    x.ln()
+                }
+            })
+            .collect();
+        Tensor::new(self.shape().clone(), result_data).unwrap()
+    }
+
     /* BINARY OPS */
 
     pub fn add(&self, other: &Tensor) -> Result<Tensor, &'static str> {
