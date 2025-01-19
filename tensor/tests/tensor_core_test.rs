@@ -213,6 +213,50 @@ fn tensor_sum_dim() {
     assert_eq!(vec![2, 2], *result.shape());
 }
 
+#[test]
+fn tensor_mean() {
+    let shape = vec![5];
+    let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.mean();
+    assert_eq!(vec![3.0_f32], *result.data());
+
+    let shape = vec![2, 3];
+    let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.mean();
+    assert_eq!(vec![3.5_f32], *result.data());
+
+    let shape = vec![2, 2, 3];
+    let data: Vec<f32> = vec![1.0, 3.0, 3.0, 4.0, 5.0, 6.0, 2.0, 3.0, 4.0, 1.0, 2.0, 2.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.mean();
+    assert_eq!(vec![3.0_f32], *result.data());
+}
+
+#[test]
+fn tensor_mean_dim() {
+    let shape = vec![5];
+    let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.mean_dim(0).unwrap();
+    assert_eq!(vec![3.0_f32], *result.data());
+
+    let shape = vec![2, 3];
+    let data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.mean_dim(0).unwrap();
+    assert_eq!(vec![2.5_f32, 3.5_f32, 4.5_f32], *result.data());
+
+    let result = a.mean_dim(1).unwrap();
+    assert_eq!(vec![2.0_f32, 5.0_f32], *result.data());
+}
+
 /* BINARY OPS */
 
 #[test]

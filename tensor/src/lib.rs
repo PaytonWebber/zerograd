@@ -113,7 +113,7 @@ impl Tensor {
 
     pub fn sum(&self) -> Tensor {
         let sum: f32 = self.data().iter().sum();
-        return Tensor::new(vec![1], vec![sum]).unwrap();
+        Tensor::new(vec![1], vec![sum]).unwrap()
     }
 
     pub fn sum_dim(&self, dim: usize) -> Result<Tensor, &'static str> {
@@ -154,6 +154,22 @@ impl Tensor {
             result_data[i] = sum;
         }
         Tensor::new(result_shape, result_data)
+    }
+
+    pub fn mean(&self) -> Tensor {
+        let sum: f32 = self.data().iter().sum();
+        let size: usize = self.shape().iter().product();
+        let mean: f32 = sum / size as f32;
+        Tensor::new(vec![1], vec![mean]).unwrap()
+    }
+
+    pub fn mean_dim(&self, dim: usize) -> Result<Tensor, &'static str> {
+        if self.shape().len() < dim {
+            return Err("Dimension out of range for the tensor");
+        }
+        let sum: Tensor = self.sum_dim(dim).unwrap();
+        let size_tensor: Tensor = Tensor::new(vec![1], vec![self.shape()[dim] as f32]).unwrap();
+        Ok(sum / size_tensor)
     }
 
     /* BINARY OPS */
