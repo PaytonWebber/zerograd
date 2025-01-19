@@ -1,5 +1,5 @@
 use core::{f32, fmt};
-use std::ops::{Add, Sub, Mul, Div, Index};
+use std::ops::{Add, Div, Index, Mul, Sub};
 
 #[derive(Debug, Clone)]
 pub struct Tensor {
@@ -107,6 +107,69 @@ impl Tensor {
         self.shape = vec![n, m];
         self.strides = vec![m, 1];
         Ok(())
+    }
+
+    /* REDUCTION OPS */
+
+    pub fn sum(&self) -> Tensor {
+        let sum: f32 = self.data().iter().sum();
+        Tensor::new(vec![1], vec![sum]).unwrap()
+    }
+
+    pub fn sum_dim(&self, dim: usize) -> Result<Tensor, &'static str> {
+        let self_data = self.data();
+        let self_shape = self.shape();
+        let self_strides = self.strides();
+        if self_shape.len() < dim {
+            return Err("Dimension out of range for the tensor");
+        }
+
+        let mut result_shape = self_shape.clone();
+        let dim_size = result_shape.remove(dim);
+
+        let result_size: usize = result_shape.iter().product();
+        let mut result_data = vec![0.0_f32; result_size];
+
+        for i in 0..result_size {
+            let result_multi_idx = unravel_index(i, &result_shape);
+            let mut full_multi_idx: Vec<usize> = Vec::with_capacity(self_shape.len());
+            let mut j = 0;
+            for k in 0..self_shape.len() {
+                if k == dim {
+                    full_multi_idx.push(0);
+                } else {
+                    full_multi_idx.push(result_multi_idx[j]);
+                    j += 1;
+                }
+            }
+            let mut sum = 0.0_f32;
+            for k in 0..dim_size {
+                full_multi_idx[dim] = k;
+                let mut offset = 0;
+                for (dim_i, &stride) in self_strides.iter().enumerate() {
+                    offset += full_multi_idx[dim_i] * stride;
+                }
+                sum += self_data[offset];
+            }
+            result_data[i] = sum;
+        }
+        Tensor::new(result_shape, result_data)
+    }
+
+    pub fn mean(&self) -> Tensor {
+        let sum: f32 = self.data().iter().sum();
+        let size: usize = self.shape().iter().product();
+        let mean: f32 = sum / size as f32;
+        Tensor::new(vec![1], vec![mean]).unwrap()
+    }
+
+    pub fn mean_dim(&self, dim: usize) -> Result<Tensor, &'static str> {
+        if self.shape().len() < dim {
+            return Err("Dimension out of range for the tensor");
+        }
+        let sum: Tensor = self.sum_dim(dim).unwrap();
+        let size_tensor: Tensor = Tensor::new(vec![1], vec![self.shape()[dim] as f32]).unwrap();
+        Ok(sum / size_tensor)
     }
 
     /* BINARY OPS */
@@ -225,7 +288,7 @@ impl Tensor {
         let mut result_data: Vec<f32> = Vec::with_capacity(result_size);
         let self_data = self.data();
         let other_data = other.data();
-        
+
         for i in 0..result_size {
             let multi_idx = unravel_index(i, &bc_shape);
 
@@ -269,7 +332,7 @@ impl Tensor {
         let mut result_data: Vec<f32> = Vec::with_capacity(result_size);
         let self_data = self.data();
         let other_data = other.data();
-        
+
         for i in 0..result_size {
             let multi_idx = unravel_index(i, &bc_shape);
 
