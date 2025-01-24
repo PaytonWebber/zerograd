@@ -240,6 +240,20 @@ impl Tensor {
         Tensor::new(bc_shape, result_data)
     }
 
+    pub fn add_inplace(&mut self, other: &Tensor) {
+        let self_shape = self.shape();
+        let other_shape = other.shape();
+        if self_shape != other_shape {
+            return;
+        }
+        self.data
+            .iter_mut()
+            .zip(other.data().iter())
+            .for_each(|(a, &b)| {
+                *a += b;
+            });
+    }
+
     pub fn sub(&self, other: &Tensor) -> Result<Tensor, &'static str> {
         let self_shape = self.shape();
         let other_shape = other.shape();
@@ -283,6 +297,20 @@ impl Tensor {
             result_data.push(val);
         }
         Tensor::new(bc_shape, result_data)
+    }
+
+    pub fn sub_inplace(&mut self, other: &Tensor) {
+        let self_shape = self.shape();
+        let other_shape = other.shape();
+        if self_shape != other_shape {
+            return;
+        }
+        self.data
+            .iter_mut()
+            .zip(other.data().iter())
+            .for_each(|(a, &b)| {
+                *a -= b;
+            });
     }
 
     pub fn mul(&self, other: &Tensor) -> Result<Tensor, &'static str> {
@@ -329,6 +357,20 @@ impl Tensor {
         Tensor::new(bc_shape, result_data)
     }
 
+    pub fn mul_inplace(&mut self, other: &Tensor) {
+        let self_shape = self.shape();
+        let other_shape = other.shape();
+        if self_shape != other_shape {
+            return;
+        }
+        self.data
+            .iter_mut()
+            .zip(other.data().iter())
+            .for_each(|(a, &b)| {
+                *a *= b;
+            });
+    }
+
     pub fn div(&self, other: &Tensor) -> Result<Tensor, &'static str> {
         let self_shape = self.shape();
         let other_shape = other.shape();
@@ -371,6 +413,20 @@ impl Tensor {
             result_data.push(val);
         }
         Tensor::new(bc_shape, result_data)
+    }
+
+    pub fn div_inplace(&mut self, other: &Tensor) {
+        let self_shape = self.shape();
+        let other_shape = other.shape();
+        if self_shape != other_shape {
+            return;
+        }
+        self.data
+            .iter_mut()
+            .zip(other.data().iter())
+            .for_each(|(a, &b)| {
+                *a /= b;
+            });
     }
 
     pub fn matmul(&self, other: &Tensor) -> Result<Tensor, &'static str> {
@@ -447,7 +503,7 @@ fn unravel_index(mut i: usize, shape: &[usize]) -> Vec<usize> {
 
 pub fn is_broadcastable(a: &Vec<usize>, b: &Vec<usize>) -> bool {
     // This is based on NumPy's rules: https://numpy.org/doc/stable/user/basics.broadcasting.html
-    for (i, j) in a.into_iter().rev().zip(b.into_iter().rev()) {
+    for (i, j) in a.iter().rev().zip(b.iter().rev()) {
         if *i == 1 || *j == 1 {
             continue;
         }
@@ -480,26 +536,26 @@ pub fn compute_broadcast_shape_and_strides(
             if dim_a != dim_b {
                 a_bc_strides[ndims - i - 1] = match dim_a {
                     1 => 0,
-                    _ => a_dims[ndims - i..].into_iter().product(),
+                    _ => a_dims[ndims - i..].iter().product(),
                 };
                 b_bc_strides[ndims - i - 1] = match dim_b {
                     1 => 0,
-                    _ => b_dims[ndims - i..].into_iter().product(),
+                    _ => b_dims[ndims - i..].iter().product(),
                 };
             }
         } else {
             if dim_a != dim_b {
                 a_bc_strides[ndims - i - 1] = match dim_a {
                     1 => 0,
-                    _ => a_dims[ndims - i..].into_iter().product(),
+                    _ => a_dims[ndims - i..].iter().product(),
                 };
                 b_bc_strides[ndims - i - 1] = match dim_b {
                     1 => 0,
-                    _ => b_dims[ndims - i..].into_iter().product(),
+                    _ => b_dims[ndims - i..].iter().product(),
                 };
             } else {
-                a_bc_strides[ndims - i - 1] = a_dims[ndims - i..].into_iter().product();
-                b_bc_strides[ndims - i - 1] = b_dims[ndims - i..].into_iter().product();
+                a_bc_strides[ndims - i - 1] = a_dims[ndims - i..].iter().product();
+                b_bc_strides[ndims - i - 1] = b_dims[ndims - i..].iter().product();
             }
         }
         bc_shape[ndims - i - 1] = dim_a.max(dim_b);

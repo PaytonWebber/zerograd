@@ -365,6 +365,20 @@ fn tensor_broadcasted_addition_operator() {
 }
 
 #[test]
+fn tensor_add_inplace() {
+    let a_shape = vec![2, 3];
+    let b_shape = vec![2, 3];
+    let a_data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+
+    let mut a = Tensor::new(a_shape, a_data).unwrap();
+    let b = Tensor::ones(b_shape);
+    a.add_inplace(&b);
+
+    let expected_data: Vec<f32> = vec![2.0, 3.0, 4.0, 5.0, 6.0, 7.0];
+    assert_eq!(expected_data, *a.data());
+}
+
+#[test]
 fn tensor_subtraction_method() {
     let shape = vec![4, 2];
     let a = Tensor::ones(shape.clone());
@@ -436,6 +450,20 @@ fn tensor_broadcasted_subtraction_operator() {
 }
 
 #[test]
+fn tensor_sub_inplace() {
+    let a_shape = vec![2, 3];
+    let b_shape = vec![2, 3];
+    let a_data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+
+    let mut a = Tensor::new(a_shape, a_data).unwrap();
+    let b = Tensor::ones(b_shape);
+    a.sub_inplace(&b);
+
+    let expected_data: Vec<f32> = vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
+    assert_eq!(expected_data, *a.data());
+}
+
+#[test]
 fn tensor_mul_method() {
     let a_shape = vec![1, 3];
     let b_shape = vec![1, 3];
@@ -500,6 +528,21 @@ fn tensor_broadcasted_mul_method() {
 }
 
 #[test]
+fn tensor_mul_inplace() {
+    let a_shape = vec![2, 3];
+    let b_shape = vec![2, 3];
+    let a_data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let b_data: Vec<f32> = vec![2.0, 2.0, 2.0, 2.0, 2.0, 2.0];
+
+    let mut a = Tensor::new(a_shape, a_data).unwrap();
+    let b = Tensor::new(b_shape, b_data).unwrap();
+    a.mul_inplace(&b);
+
+    let expected_data: Vec<f32> = vec![2.0, 4.0, 6.0, 8.0, 10.0, 12.0];
+    assert_eq!(expected_data, *a.data());
+}
+
+#[test]
 fn tensor_div_method() {
     let a_shape = vec![1, 3];
     let b_shape = vec![1, 3];
@@ -558,6 +601,21 @@ fn tensor_broadcasted_div_method() {
     let c = a_tensor.div(&b_tensor).unwrap();
     let expected = vec![0.5_f32, 1_f32, 3_f32 / 2_f32];
     assert_eq!(expected, *c.data());
+}
+
+#[test]
+fn tensor_div_inplace() {
+    let a_shape = vec![2, 3];
+    let b_shape = vec![2, 3];
+    let a_data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
+    let b_data: Vec<f32> = vec![2.0, 2.0, 2.0, 2.0, 2.0, 2.0];
+
+    let mut a = Tensor::new(a_shape, a_data).unwrap();
+    let b = Tensor::new(b_shape, b_data).unwrap();
+    a.div_inplace(&b);
+
+    let expected_data: Vec<f32> = vec![0.5, 1.0, 1.5, 2.0, 2.5, 3.0];
+    assert_eq!(expected_data, *a.data());
 }
 
 #[test]
