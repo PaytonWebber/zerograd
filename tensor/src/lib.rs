@@ -711,6 +711,14 @@ impl AddAssign<&Tensor> for Tensor {
     }
 }
 
+impl AddAssign<f32> for Tensor {
+    fn add_assign(&mut self, rhs: f32) {
+        self.data.iter_mut().for_each(|a| {
+            *a += rhs;
+        });
+    }
+}
+
 impl Sub<&Tensor> for &Tensor {
     type Output = Tensor;
 
@@ -751,6 +759,14 @@ impl SubAssign<&Tensor> for Tensor {
             .for_each(|(a, b)| {
                 *a -= b;
             });
+    }
+}
+
+impl SubAssign<f32> for Tensor {
+    fn sub_assign(&mut self, rhs: f32) {
+        self.data.iter_mut().for_each(|a| {
+            *a -= rhs;
+        });
     }
 }
 
@@ -797,6 +813,14 @@ impl MulAssign<&Tensor> for Tensor {
     }
 }
 
+impl MulAssign<f32> for Tensor {
+    fn mul_assign(&mut self, rhs: f32) {
+        self.data.iter_mut().for_each(|a| {
+            *a *= rhs;
+        });
+    }
+}
+
 impl Div<&Tensor> for &Tensor {
     type Output = Tensor;
 
@@ -828,5 +852,13 @@ impl DivAssign<&Tensor> for Tensor {
             .for_each(|(a, b)| {
                 *a /= b;
             });
+    }
+}
+
+impl DivAssign<f32> for Tensor {
+    fn div_assign(&mut self, rhs: f32) {
+        self.data.iter_mut().for_each(|a| {
+            *a /= rhs;
+        });
     }
 }

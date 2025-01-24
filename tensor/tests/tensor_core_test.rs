@@ -387,9 +387,13 @@ fn tensor_add_inplace_operator() {
 
     let mut a = Tensor::new(a_shape, a_data).unwrap();
     let b = Tensor::new(b_shape, b_data).unwrap();
-    a += &b;
 
+    a += &b;
     let expected_data: Vec<f32> = vec![2.0, 4.0, 6.0, 8.0, 10.0, 12.0];
+    assert_eq!(expected_data, *a.data());
+
+    a += 4.0;
+    let expected_data: Vec<f32> = vec![6.0, 8.0, 10.0, 12.0, 14.0, 16.0];
     assert_eq!(expected_data, *a.data());
 }
 
@@ -487,9 +491,13 @@ fn tensor_sub_inplace_operator() {
 
     let mut a = Tensor::new(a_shape, a_data).unwrap();
     let b = Tensor::new(b_shape, b_data).unwrap();
-    a -= &b;
 
+    a -= &b;
     let expected_data: Vec<f32> = vec![-1.0, 0.0, 1.0, 2.0, 3.0, 4.0];
+    assert_eq!(expected_data, *a.data());
+
+    a -= 2.0;
+    let expected_data: Vec<f32> = vec![-3.0, -2.0, -1.0, 0.0, 1.0, 2.0];
     assert_eq!(expected_data, *a.data());
 }
 
@@ -581,9 +589,13 @@ fn tensor_mul_inplace_operator() {
 
     let mut a = Tensor::new(a_shape, a_data).unwrap();
     let b = Tensor::new(b_shape, b_data).unwrap();
-    a *= &b;
 
+    a *= &b;
     let expected_data: Vec<f32> = vec![2.0, 4.0, 6.0, 8.0, 10.0, 12.0];
+    assert_eq!(expected_data, *a.data());
+
+    a *= 2.0;
+    let expected_data: Vec<f32> = vec![4.0, 8.0, 12.0, 16.0, 20.0, 24.0];
     assert_eq!(expected_data, *a.data());
 }
 
@@ -672,9 +684,13 @@ fn tensor_div_inplace_operator() {
 
     let mut a = Tensor::new(a_shape, a_data).unwrap();
     let b = Tensor::new(b_shape, b_data).unwrap();
-    a /= &b;
 
+    a /= &b;
     let expected_data: Vec<f32> = vec![0.5, 1.0, 1.5, 2.0, 2.5, 3.0];
+    assert_eq!(expected_data, *a.data());
+
+    a /= 0.5;
+    let expected_data: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
     assert_eq!(expected_data, *a.data());
 }
 
