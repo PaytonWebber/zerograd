@@ -193,6 +193,15 @@ impl Tensor {
         Tensor::new(self.shape().clone(), result_data).unwrap()
     }
 
+    pub fn relu(&self) -> Tensor {
+        let result_data: Vec<f32> = self
+            .data()
+            .iter()
+            .map(|&x| if x > 0.0_f32 { x } else { 0.0_f32 })
+            .collect();
+        Tensor::new(self.shape().clone(), result_data).unwrap()
+    }
+
     /* BINARY OPS */
 
     pub fn add(&self, other: &Tensor) -> Result<Tensor, &'static str> {

@@ -291,6 +291,17 @@ fn tensor_log() {
     assert_eq!(expected_result, *result.data());
 }
 
+#[test]
+fn tensor_relu() {
+    let shape = vec![2, 3];
+    let data: Vec<f32> = vec![1.0, -2.0, 3.0, 4.0, -5.0, 6.0];
+    let a = Tensor::new(shape, data).unwrap();
+
+    let result = a.relu();
+    let expected_data: Vec<f32> = vec![1.0, 0.0, 3.0, 4.0, 0.0, 6.0];
+    assert_eq!(expected_data, *result.data());
+}
+
 /* BINARY OPS */
 
 #[test]
