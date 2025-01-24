@@ -1,5 +1,5 @@
 use core::{f32, fmt};
-use std::ops::{Add, Div, Index, Mul, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Sub, SubAssign};
 
 #[derive(Debug, Clone)]
 pub struct Tensor {
@@ -244,7 +244,7 @@ impl Tensor {
         let self_shape = self.shape();
         let other_shape = other.shape();
         if self_shape != other_shape {
-            return;
+            panic!("The tensor shape not compatible for inplace addition")
         }
         self.data
             .iter_mut()
@@ -303,7 +303,7 @@ impl Tensor {
         let self_shape = self.shape();
         let other_shape = other.shape();
         if self_shape != other_shape {
-            return;
+            panic!("The tensor shape not compatible for inplace subtraction")
         }
         self.data
             .iter_mut()
@@ -361,7 +361,7 @@ impl Tensor {
         let self_shape = self.shape();
         let other_shape = other.shape();
         if self_shape != other_shape {
-            return;
+            panic!("The tensor shape not compatible for inplace multiplication")
         }
         self.data
             .iter_mut()
@@ -419,7 +419,7 @@ impl Tensor {
         let self_shape = self.shape();
         let other_shape = other.shape();
         if self_shape != other_shape {
-            return;
+            panic!("The tensor shape not compatible for inplace division")
         }
         self.data
             .iter_mut()
@@ -697,6 +697,20 @@ impl Add<&Tensor> for f32 {
     }
 }
 
+impl AddAssign<&Tensor> for Tensor {
+    fn add_assign(&mut self, rhs: &Tensor) {
+        if *self.shape() != *rhs.shape() {
+            panic!("The tensor shape not compatible for inplace addition")
+        }
+        self.data
+            .iter_mut()
+            .zip(rhs.data().iter())
+            .for_each(|(a, b)| {
+                *a += b;
+            });
+    }
+}
+
 impl Sub<&Tensor> for &Tensor {
     type Output = Tensor;
 
@@ -723,6 +737,20 @@ impl Sub<&Tensor> for f32 {
     fn sub(self, rhs: &Tensor) -> Self::Output {
         let result_data: Vec<f32> = rhs.data().iter().map(|&x| x - self).collect();
         Tensor::new(rhs.shape().clone(), result_data).unwrap()
+    }
+}
+
+impl SubAssign<&Tensor> for Tensor {
+    fn sub_assign(&mut self, rhs: &Tensor) {
+        if *self.shape() != *rhs.shape() {
+            panic!("The tensor shape not compatible for inplace subtraction")
+        }
+        self.data
+            .iter_mut()
+            .zip(rhs.data().iter())
+            .for_each(|(a, b)| {
+                *a -= b;
+            });
     }
 }
 
@@ -755,6 +783,20 @@ impl Mul<&Tensor> for f32 {
     }
 }
 
+impl MulAssign<&Tensor> for Tensor {
+    fn mul_assign(&mut self, rhs: &Tensor) {
+        if *self.shape() != *rhs.shape() {
+            panic!("The tensor shape not compatible for inplace subtraction")
+        }
+        self.data
+            .iter_mut()
+            .zip(rhs.data().iter())
+            .for_each(|(a, b)| {
+                *a *= b;
+            });
+    }
+}
+
 impl Div<&Tensor> for &Tensor {
     type Output = Tensor;
 
@@ -772,5 +814,19 @@ impl Div<f32> for &Tensor {
     fn div(self, rhs: f32) -> Self::Output {
         let result_data: Vec<f32> = self.data().iter().map(|&x| x / rhs).collect();
         Tensor::new(self.shape().clone(), result_data).unwrap()
+    }
+}
+
+impl DivAssign<&Tensor> for Tensor {
+    fn div_assign(&mut self, rhs: &Tensor) {
+        if *self.shape() != *rhs.shape() {
+            panic!("The tensor shape not compatible for inplace subtraction")
+        }
+        self.data
+            .iter_mut()
+            .zip(rhs.data().iter())
+            .for_each(|(a, b)| {
+                *a /= b;
+            });
     }
 }
