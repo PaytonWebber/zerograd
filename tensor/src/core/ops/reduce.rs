@@ -1,4 +1,4 @@
-use crate::tensor::{unravel_index, TensorError};
+use crate::core::{unravel_index, TensorError};
 use crate::Tensor;
 
 impl Tensor {

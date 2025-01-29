@@ -1,5 +1,5 @@
-use crate::tensor::broadcast::{compute_broadcast_shape_and_strides, is_broadcastable};
-use crate::tensor::{unravel_index, TensorError};
+use crate::core::broadcast::{compute_broadcast_shape_and_strides, is_broadcastable};
+use crate::core::{unravel_index, TensorError};
 use crate::Tensor;
 
 impl Tensor {

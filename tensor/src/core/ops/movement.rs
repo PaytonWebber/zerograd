@@ -1,4 +1,4 @@
-use crate::tensor::TensorError;
+use crate::core::TensorError;
 use crate::Tensor;
 
 impl Tensor {

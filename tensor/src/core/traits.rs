@@ -1,5 +1,5 @@
-use super::Tensor;
-use crate::tensor::utils::print_tensor_recursive;
+use crate::core::utils::print_tensor_recursive;
+use crate::Tensor;
 use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Sub, SubAssign};
 
