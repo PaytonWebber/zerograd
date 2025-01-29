@@ -1,4 +1,3 @@
-mod broadcast;
 mod errors;
 mod ops;
 mod traits;

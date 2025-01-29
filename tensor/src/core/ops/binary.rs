@@ -1,4 +1,4 @@
-use crate::core::broadcast::{compute_broadcast_shape_and_strides, is_broadcastable};
+use super::broadcast::{compute_broadcast_shape_and_strides, is_broadcastable};
 use crate::core::{unravel_index, TensorError};
 use crate::Tensor;
 
