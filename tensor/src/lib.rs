@@ -206,35 +206,32 @@ impl Tensor {
 
     /* UNARY OPS */
 
+    fn unary_op<F>(&self, op: F) -> Tensor
+    where
+        F: Fn(f32) -> f32,
+    {
+        let result_data: Vec<f32> = self.data().iter().map(|x| op(*x)).collect();
+        return Tensor::new(self.shape().clone(), result_data).unwrap();
+    }
+
     pub fn exp(&self) -> Tensor {
-        let result_data: Vec<f32> = self.data().iter().map(|&x| x.exp()).collect();
-        Tensor::new(self.shape().clone(), result_data).unwrap()
+        self.unary_op(|x| x.exp())
     }
 
     pub fn log(&self) -> Tensor {
-        let result_data: Vec<f32> = self
-            .data()
-            .iter()
-            .map(|&x| {
-                if x == 0.0 {
-                    f32::NEG_INFINITY // log(0) -> -inf
-                } else if x < 0.0 {
-                    f32::NAN // log of negative numbers is undefined
-                } else {
-                    x.ln()
-                }
-            })
-            .collect();
-        Tensor::new(self.shape().clone(), result_data).unwrap()
+        self.unary_op(|x| {
+            if x == 0.0 {
+                f32::NEG_INFINITY // log(0) -> -inf
+            } else if x < 0.0 {
+                f32::NAN // log of negative numbers is undefined
+            } else {
+                x.ln()
+            }
+        })
     }
 
     pub fn relu(&self) -> Tensor {
-        let result_data: Vec<f32> = self
-            .data()
-            .iter()
-            .map(|&x| if x > 0.0_f32 { x } else { 0.0_f32 })
-            .collect();
-        Tensor::new(self.shape().clone(), result_data).unwrap()
+        self.unary_op(|x| if x > 0.0_f32 { x } else { 0.0_f32 })
     }
 
     /* BINARY OPS */
