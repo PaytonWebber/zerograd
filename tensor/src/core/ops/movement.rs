@@ -1,4 +1,4 @@
-use crate::core::TensorError;
+use crate::core::{calculate_strides, TensorError};
 use crate::Tensor;
 
 impl Tensor {
@@ -10,7 +10,7 @@ impl Tensor {
                 "The new shape does not align with the size of the data.".to_string(),
             ));
         }
-        self.strides = Self::calculate_strides(&shape);
+        self.strides = calculate_strides(&shape);
         self.shape = shape.to_vec();
         Ok(())
     }

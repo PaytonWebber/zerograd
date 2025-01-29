@@ -1,5 +1,15 @@
 use std::fmt;
 
+pub fn calculate_strides(shape: &Vec<usize>) -> Vec<usize> {
+    let length: usize = shape.len();
+    let mut strides = vec![1; length];
+    strides.iter_mut().enumerate().for_each(|(i, stride)| {
+        // stride[i] = (shape[i+1]*shape[i+2]*...*shape[N-1])
+        *stride = shape.iter().take(length).skip(i + 1).product();
+    });
+    strides
+}
+
 pub fn unravel_index(mut i: usize, shape: &[usize]) -> Vec<usize> {
     let ndim = shape.len();
     let mut coords = vec![0; ndim];
