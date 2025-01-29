@@ -4,7 +4,7 @@ mod traits;
 mod utils;
 
 use errors::TensorError;
-use utils::{calculate_strides, unravel_index};
+use utils::calculate_strides;
 
 pub struct Tensor {
     shape: Vec<usize>,
