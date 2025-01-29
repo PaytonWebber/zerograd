@@ -4,12 +4,6 @@
 
 ---
 
-## Table of Contents
-1. [Features](#features)  
-2. [Usage](#usage)  
-
----
-
 ## Features
 
 - **Flexible Tensor Data Structure**: Supports arbitrary-rank tensors with shape/stride-based internal representation in row-major order.  
