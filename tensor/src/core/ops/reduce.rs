@@ -18,7 +18,7 @@ impl Tensor {
             ));
         }
 
-        let mut result_shape = self_shape.clone();
+        let mut result_shape = self_shape.to_vec().clone();
         let dim_size = result_shape.remove(dim);
 
         let result_size: usize = result_shape.iter().product();

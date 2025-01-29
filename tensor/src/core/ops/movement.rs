@@ -2,7 +2,7 @@ use crate::core::{calculate_strides, TensorError};
 use crate::Tensor;
 
 impl Tensor {
-    pub fn reshape(&mut self, shape: Vec<usize>) -> Result<(), TensorError> {
+    pub fn reshape(&mut self, shape: &[usize]) -> Result<(), TensorError> {
         let new_length: usize = shape.iter().product();
         let current_length: usize = self.shape.iter().product();
         if new_length != current_length {
@@ -10,12 +10,12 @@ impl Tensor {
                 "The new shape does not align with the size of the data.".to_string(),
             ));
         }
-        self.strides = calculate_strides(&shape);
+        self.strides = calculate_strides(shape);
         self.shape = shape.to_vec();
         Ok(())
     }
 
-    pub fn permute(&mut self, order: Vec<usize>) -> Result<(), TensorError> {
+    pub fn permute(&mut self, order: &[usize]) -> Result<(), TensorError> {
         if order.len() != self.shape.len() {
             return Err(TensorError::CreationError(
                 "The permutation does not align with the current shape.".to_string(),

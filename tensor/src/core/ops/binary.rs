@@ -23,7 +23,7 @@ impl Tensor {
                 .zip(other.data.iter())
                 .map(|(a, b)| op(*a, *b))
                 .collect();
-            return Tensor::new(self_shape.clone(), result_data);
+            return Tensor::new(self_shape, result_data);
         }
 
         let (bc_shape, self_bc_strides, other_bc_strides) =
@@ -102,8 +102,8 @@ impl Tensor {
     }
 
     pub fn matmul(&self, other: &Tensor) -> Result<Tensor, TensorError> {
-        let lhs_shape: &Vec<usize> = self.shape();
-        let rhs_shape: &Vec<usize> = other.shape();
+        let lhs_shape = self.shape();
+        let rhs_shape = other.shape();
         if lhs_shape.len() != 2 || rhs_shape.len() != 2 {
             return Err(TensorError::BroadcastError(
                 "matmul requires 2D tensors".to_string(),
@@ -118,8 +118,8 @@ impl Tensor {
             ));
         }
 
-        let lhs_data: &Vec<f32> = self.data();
-        let rhs_data: &Vec<f32> = other.data();
+        let lhs_data = self.data();
+        let rhs_data = other.data();
         let mut result_data: Vec<f32> = vec![0.0_f32; rows_left * cols_right];
         for i in 0..rows_left {
             for k in 0..cols_left {
