@@ -8,11 +8,34 @@ pub struct Tensor {
     data: Vec<f32>,
 }
 
+#[derive(Debug)]
+pub enum TensorError {
+    BroadcastError(String),
+    CreationError(String),
+    MovementError(String),
+    IndexError(String),
+}
+
+impl std::fmt::Display for TensorError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TensorError::CreationError(msg) => write!(f, "Creation error: {}", msg),
+            TensorError::BroadcastError(msg) => write!(f, "Broadcast error: {}", msg),
+            TensorError::MovementError(msg) => write!(f, "Movement error: {}", msg),
+            TensorError::IndexError(msg) => write!(f, "Index error: {}", msg),
+        }
+    }
+}
+
+impl std::error::Error for TensorError {}
+
 impl Tensor {
-    pub fn new(shape: Vec<usize>, data: Vec<f32>) -> Result<Self, &'static str> {
+    pub fn new(shape: Vec<usize>, data: Vec<f32>) -> Result<Tensor, TensorError> {
         let length: usize = shape.iter().product();
         if data.len() != length {
-            return Err("Data does not fit within shape");
+            return Err(TensorError::CreationError(
+                "Data does not fit within shape".to_string(),
+            ));
         }
         let strides: Vec<usize> = Self::calculate_strides(&shape);
         Ok(Tensor {
@@ -54,26 +77,32 @@ impl Tensor {
 
     /* MOVEMENT OPS */
 
-    pub fn reshape(&mut self, shape: Vec<usize>) -> Result<(), &'static str> {
+    pub fn reshape(&mut self, shape: Vec<usize>) -> Result<(), TensorError> {
         let new_length: usize = shape.iter().product();
         let current_length: usize = self.shape.iter().product();
         if new_length != current_length {
-            return Err("The new shape does not align with the size of the data.");
+            return Err(TensorError::CreationError(
+                "The new shape does not align with the size of the data.".to_string(),
+            ));
         }
         self.strides = Self::calculate_strides(&shape);
         self.shape = shape.to_vec();
         Ok(())
     }
 
-    pub fn permute(&mut self, order: Vec<usize>) -> Result<(), &'static str> {
+    pub fn permute(&mut self, order: Vec<usize>) -> Result<(), TensorError> {
         if order.len() != self.shape.len() {
-            return Err("The permutation does not align with the current shape.");
+            return Err(TensorError::CreationError(
+                "The permutation does not align with the current shape.".to_string(),
+            ));
         }
 
         let mut sorted_order: Vec<usize> = order.to_vec();
         sorted_order.sort();
         if sorted_order != (0..self.shape.len()).collect::<Vec<_>>() {
-            return Err("Index out of range for shape.");
+            return Err(TensorError::CreationError(
+                "Index out of range for shape.".to_string(),
+            ));
         }
 
         let new_shape: Vec<usize> = order.iter().map(|&i| self.shape[i]).collect();
@@ -89,9 +118,11 @@ impl Tensor {
         self.strides = vec![1];
     }
 
-    pub fn transpose(&mut self) -> Result<(), &'static str> {
+    pub fn transpose(&mut self) -> Result<(), TensorError> {
         if self.shape.len() != 2 {
-            return Err("transpose only supports 2D tensors currently.");
+            return Err(TensorError::CreationError(
+                "transpose only supports 2D tensors currently.".to_string(),
+            ));
         }
 
         let (m, n) = (self.shape[0], self.shape[1]);
@@ -116,12 +147,14 @@ impl Tensor {
         Tensor::new(vec![1], vec![sum]).unwrap()
     }
 
-    pub fn sum_dim(&self, dim: usize) -> Result<Tensor, &'static str> {
+    pub fn sum_dim(&self, dim: usize) -> Result<Tensor, TensorError> {
         let self_data = self.data();
         let self_shape = self.shape();
         let self_strides = self.strides();
         if self_shape.len() < dim {
-            return Err("Dimension out of range for the tensor");
+            return Err(TensorError::IndexError(
+                "Dimension out of range for the tensor".to_string(),
+            ));
         }
 
         let mut result_shape = self_shape.clone();
@@ -161,9 +194,11 @@ impl Tensor {
         &sum / self.shape().iter().product::<usize>() as f32
     }
 
-    pub fn mean_dim(&self, dim: usize) -> Result<Tensor, &'static str> {
+    pub fn mean_dim(&self, dim: usize) -> Result<Tensor, TensorError> {
         if self.shape().len() < dim {
-            return Err("Dimension out of range for the tensor");
+            return Err(TensorError::IndexError(
+                "Dimension out of range for the tensor".to_string(),
+            ));
         }
         let sum: Tensor = self.sum_dim(dim).unwrap();
         Ok(&sum / self.shape()[dim] as f32)
@@ -204,11 +239,16 @@ impl Tensor {
 
     /* BINARY OPS */
 
-    pub fn add(&self, other: &Tensor) -> Result<Tensor, &'static str> {
+    fn binary_op<F>(&self, other: &Tensor, op: F) -> Result<Tensor, TensorError>
+    where
+        F: Fn(f32, f32) -> f32,
+    {
         let self_shape = self.shape();
         let other_shape = other.shape();
         if !is_broadcastable(self_shape, other_shape) {
-            return Err("The tensor shapes are not compatible for addition.");
+            return Err(TensorError::BroadcastError(
+                "Shapes are not compatible for the operation".to_string(),
+            ));
         }
 
         if self_shape == other_shape {
@@ -216,7 +256,7 @@ impl Tensor {
                 .data
                 .iter()
                 .zip(other.data.iter())
-                .map(|(a, b)| a + b)
+                .map(|(a, b)| op(*a, *b))
                 .collect();
             return Tensor::new(self_shape.clone(), result_data);
         }
@@ -226,27 +266,27 @@ impl Tensor {
 
         let self_data = self.data();
         let other_data = other.data();
-
         let result_size: usize = bc_shape.iter().product();
         let mut result_data: Vec<f32> = Vec::with_capacity(result_size);
 
         for i in 0..result_size {
             let multi_idx = unravel_index(i, &bc_shape);
-
             let mut self_offset = 0;
+            let mut other_offset = 0;
+
             for (dim_i, &stride) in self_bc_strides.iter().enumerate() {
                 self_offset += multi_idx[dim_i] * stride;
             }
-
-            let mut other_offset = 0;
             for (dim_i, &stride) in other_bc_strides.iter().enumerate() {
                 other_offset += multi_idx[dim_i] * stride;
             }
-
-            let val = self_data[self_offset] + other_data[other_offset];
-            result_data.push(val);
+            result_data.push(op(self_data[self_offset], other_data[other_offset]));
         }
         Tensor::new(bc_shape, result_data)
+    }
+
+    pub fn add(&self, other: &Tensor) -> Result<Tensor, TensorError> {
+        self.binary_op(other, |a, b| a + b)
     }
 
     pub fn add_inplace(&mut self, other: &Tensor) {
@@ -263,49 +303,8 @@ impl Tensor {
             });
     }
 
-    pub fn sub(&self, other: &Tensor) -> Result<Tensor, &'static str> {
-        let self_shape = self.shape();
-        let other_shape = other.shape();
-        if !is_broadcastable(self_shape, other_shape) {
-            return Err("The tensor shapes are not compatible for subtraction.");
-        }
-
-        if self_shape == other_shape {
-            let result_data: Vec<f32> = self
-                .data
-                .iter()
-                .zip(other.data.iter())
-                .map(|(a, b)| a - b)
-                .collect();
-            return Tensor::new(self_shape.clone(), result_data);
-        }
-
-        let (bc_shape, self_bc_strides, other_bc_strides) =
-            compute_broadcast_shape_and_strides(self_shape, other_shape);
-
-        let self_data = self.data();
-        let other_data = other.data();
-
-        let result_size: usize = bc_shape.iter().product();
-        let mut result_data: Vec<f32> = Vec::with_capacity(result_size);
-
-        for i in 0..result_size {
-            let multi_idx = unravel_index(i, &bc_shape);
-
-            let mut self_offset = 0;
-            for (dim_i, &stride) in self_bc_strides.iter().enumerate() {
-                self_offset += multi_idx[dim_i] * stride;
-            }
-
-            let mut other_offset = 0;
-            for (dim_i, &stride) in other_bc_strides.iter().enumerate() {
-                other_offset += multi_idx[dim_i] * stride;
-            }
-
-            let val = self_data[self_offset] - other_data[other_offset];
-            result_data.push(val);
-        }
-        Tensor::new(bc_shape, result_data)
+    pub fn sub(&self, other: &Tensor) -> Result<Tensor, TensorError> {
+        self.binary_op(other, |a, b| a - b)
     }
 
     pub fn sub_inplace(&mut self, other: &Tensor) {
@@ -322,48 +321,8 @@ impl Tensor {
             });
     }
 
-    pub fn mul(&self, other: &Tensor) -> Result<Tensor, &'static str> {
-        let self_shape = self.shape();
-        let other_shape = other.shape();
-        if !is_broadcastable(self_shape, other_shape) {
-            return Err("The tensor shapes are not compatible for multiplication.");
-        }
-
-        if self_shape == other_shape {
-            let result_data: Vec<f32> = self
-                .data
-                .iter()
-                .zip(other.data.iter())
-                .map(|(a, b)| a * b)
-                .collect();
-            return Tensor::new(self_shape.clone(), result_data);
-        }
-
-        let (bc_shape, self_bc_strides, other_bc_strides) =
-            compute_broadcast_shape_and_strides(self_shape, other_shape);
-
-        let result_size = bc_shape.iter().product();
-        let mut result_data: Vec<f32> = Vec::with_capacity(result_size);
-        let self_data = self.data();
-        let other_data = other.data();
-
-        for i in 0..result_size {
-            let multi_idx = unravel_index(i, &bc_shape);
-
-            let mut self_offset = 0;
-            for (dim_i, &stride) in self_bc_strides.iter().enumerate() {
-                self_offset += multi_idx[dim_i] * stride;
-            }
-
-            let mut other_offset = 0;
-            for (dim_i, &stride) in other_bc_strides.iter().enumerate() {
-                other_offset += multi_idx[dim_i] * stride;
-            }
-
-            let val = self_data[self_offset] * other_data[other_offset];
-            result_data.push(val);
-        }
-        Tensor::new(bc_shape, result_data)
+    pub fn mul(&self, other: &Tensor) -> Result<Tensor, TensorError> {
+        self.binary_op(other, |a, b| a * b)
     }
 
     pub fn mul_inplace(&mut self, other: &Tensor) {
@@ -380,48 +339,8 @@ impl Tensor {
             });
     }
 
-    pub fn div(&self, other: &Tensor) -> Result<Tensor, &'static str> {
-        let self_shape = self.shape();
-        let other_shape = other.shape();
-        if !is_broadcastable(self_shape, other_shape) {
-            return Err("The tensor shapes are not compatible for division.");
-        }
-
-        if self_shape == other_shape {
-            let result_data: Vec<f32> = self
-                .data
-                .iter()
-                .zip(other.data.iter())
-                .map(|(a, b)| a / b)
-                .collect();
-            return Tensor::new(self_shape.clone(), result_data);
-        }
-
-        let (bc_shape, self_bc_strides, other_bc_strides) =
-            compute_broadcast_shape_and_strides(self_shape, other_shape);
-
-        let result_size = bc_shape.iter().product();
-        let mut result_data: Vec<f32> = Vec::with_capacity(result_size);
-        let self_data = self.data();
-        let other_data = other.data();
-
-        for i in 0..result_size {
-            let multi_idx = unravel_index(i, &bc_shape);
-
-            let mut self_offset = 0;
-            for (dim_i, &stride) in self_bc_strides.iter().enumerate() {
-                self_offset += multi_idx[dim_i] * stride;
-            }
-
-            let mut other_offset = 0;
-            for (dim_i, &stride) in other_bc_strides.iter().enumerate() {
-                other_offset += multi_idx[dim_i] * stride;
-            }
-
-            let val = self_data[self_offset] / other_data[other_offset];
-            result_data.push(val);
-        }
-        Tensor::new(bc_shape, result_data)
+    pub fn div(&self, other: &Tensor) -> Result<Tensor, TensorError> {
+        self.binary_op(other, |a, b| a / b)
     }
 
     pub fn div_inplace(&mut self, other: &Tensor) {
@@ -438,17 +357,21 @@ impl Tensor {
             });
     }
 
-    pub fn matmul(&self, other: &Tensor) -> Result<Tensor, &'static str> {
+    pub fn matmul(&self, other: &Tensor) -> Result<Tensor, TensorError> {
         let lhs_shape: &Vec<usize> = self.shape();
         let rhs_shape: &Vec<usize> = other.shape();
         if lhs_shape.len() != 2 || rhs_shape.len() != 2 {
-            return Err("matmul requires 2D tensors");
+            return Err(TensorError::BroadcastError(
+                "matmul requires 2D tensors".to_string(),
+            ));
         }
 
         let (rows_left, cols_left) = (lhs_shape[0], lhs_shape[1]);
         let (rows_right, cols_right) = (rhs_shape[0], rhs_shape[1]);
         if cols_left != rows_right {
-            return Err("Incompatible shapes for matrix multiplication");
+            return Err(TensorError::BroadcastError(
+                "Incompatible shapes for matrix multiplication".to_string(),
+            ));
         }
 
         let lhs_data: &Vec<f32> = self.data();
