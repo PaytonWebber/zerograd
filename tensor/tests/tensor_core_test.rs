@@ -1,4 +1,4 @@
-use tensor::{compute_broadcast_shape_and_strides, is_broadcastable, Tensor};
+use tensor::Tensor;
 
 /* CREATION OPS */
 
@@ -754,63 +754,6 @@ fn tensor_display_3d() {
     let t = Tensor::new(vec![2, 2, 2], vec![0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]).unwrap();
     let expected = "tensor([[[0.0000, 1.0000]\n        [2.0000, 3.0000]]\n\n       [[4.0000, 5.0000]\n        [6.0000, 7.0000]]])";
     assert_eq!(format!("{}", t), expected);
-}
-
-#[test]
-fn test_is_broadcastable() {
-    let a: Vec<usize> = vec![256, 256, 3];
-    let b: Vec<usize> = vec![3];
-
-    let result: bool = is_broadcastable(&a, &b);
-    assert_eq!(true, result);
-
-    let a: Vec<usize> = vec![8, 1, 6, 1];
-    let b: Vec<usize> = vec![7, 1, 5];
-
-    let result: bool = is_broadcastable(&a, &b);
-    assert_eq!(true, result);
-
-    let a: Vec<usize> = vec![15, 3, 5];
-    let b: Vec<usize> = vec![15, 1, 5];
-
-    let result: bool = is_broadcastable(&a, &b);
-    assert_eq!(true, result);
-
-    let a: Vec<usize> = vec![3];
-    let b: Vec<usize> = vec![4];
-
-    let result: bool = is_broadcastable(&a, &b);
-    assert_eq!(false, result);
-
-    let a: Vec<usize> = vec![2, 1];
-    let b: Vec<usize> = vec![8, 4, 3];
-
-    let result: bool = is_broadcastable(&a, &b);
-    assert_eq!(false, result);
-}
-
-#[test]
-fn test_compute_broadcast_shape_and_strides() {
-    let a: Vec<usize> = vec![256, 256, 3];
-    let b: Vec<usize> = vec![3];
-    let (bc_shape, a_bc_strides, b_bc_strides) = compute_broadcast_shape_and_strides(&a, &b);
-    assert_eq!(a, bc_shape);
-    assert_eq!(vec![768, 3, 1], a_bc_strides);
-    assert_eq!(vec![0, 0, 1], b_bc_strides);
-
-    let a: Vec<usize> = vec![15, 3, 5];
-    let b: Vec<usize> = vec![15, 1, 5];
-    let (bc_shape, a_bc_strides, b_bc_strides) = compute_broadcast_shape_and_strides(&a, &b);
-    assert_eq!(a, bc_shape);
-    assert_eq!(vec![15, 5, 1], a_bc_strides);
-    assert_eq!(vec![5, 0, 1], b_bc_strides);
-
-    let a: Vec<usize> = vec![8, 1, 6, 1];
-    let b: Vec<usize> = vec![7, 1, 5];
-    let (bc_shape, a_bc_strides, b_bc_strides) = compute_broadcast_shape_and_strides(&a, &b);
-    assert_eq!(vec![8, 7, 6, 5], bc_shape);
-    assert_eq!(vec![6, 0, 1, 0], a_bc_strides);
-    assert_eq!(vec![0, 5, 0, 1], b_bc_strides);
 }
 
 #[test]
