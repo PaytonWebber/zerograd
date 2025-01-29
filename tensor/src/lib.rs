@@ -285,22 +285,31 @@ impl Tensor {
         Tensor::new(bc_shape, result_data)
     }
 
+    fn binary_op_inplace<F>(&mut self, other: &Tensor, op: F)
+    where
+        F: Fn(&mut f32, f32),
+    {
+        let self_shape = self.shape();
+        let other_shape = other.shape();
+
+        if self_shape != other_shape {
+            panic!("Shapes not compatible for in-place operation");
+        }
+
+        self.data
+            .iter_mut()
+            .zip(other.data.iter())
+            .for_each(|(a, &b)| {
+                op(a, b);
+            });
+    }
+
     pub fn add(&self, other: &Tensor) -> Result<Tensor, TensorError> {
         self.binary_op(other, |a, b| a + b)
     }
 
     pub fn add_inplace(&mut self, other: &Tensor) {
-        let self_shape = self.shape();
-        let other_shape = other.shape();
-        if self_shape != other_shape {
-            panic!("The tensor shape not compatible for inplace addition")
-        }
-        self.data
-            .iter_mut()
-            .zip(other.data().iter())
-            .for_each(|(a, &b)| {
-                *a += b;
-            });
+        self.binary_op_inplace(other, |a, b| *a += b);
     }
 
     pub fn sub(&self, other: &Tensor) -> Result<Tensor, TensorError> {
@@ -308,17 +317,7 @@ impl Tensor {
     }
 
     pub fn sub_inplace(&mut self, other: &Tensor) {
-        let self_shape = self.shape();
-        let other_shape = other.shape();
-        if self_shape != other_shape {
-            panic!("The tensor shape not compatible for inplace subtraction")
-        }
-        self.data
-            .iter_mut()
-            .zip(other.data().iter())
-            .for_each(|(a, &b)| {
-                *a -= b;
-            });
+        self.binary_op_inplace(other, |a, b| *a -= b);
     }
 
     pub fn mul(&self, other: &Tensor) -> Result<Tensor, TensorError> {
@@ -326,17 +325,7 @@ impl Tensor {
     }
 
     pub fn mul_inplace(&mut self, other: &Tensor) {
-        let self_shape = self.shape();
-        let other_shape = other.shape();
-        if self_shape != other_shape {
-            panic!("The tensor shape not compatible for inplace multiplication")
-        }
-        self.data
-            .iter_mut()
-            .zip(other.data().iter())
-            .for_each(|(a, &b)| {
-                *a *= b;
-            });
+        self.binary_op_inplace(other, |a, b| *a *= b);
     }
 
     pub fn div(&self, other: &Tensor) -> Result<Tensor, TensorError> {
@@ -344,17 +333,7 @@ impl Tensor {
     }
 
     pub fn div_inplace(&mut self, other: &Tensor) {
-        let self_shape = self.shape();
-        let other_shape = other.shape();
-        if self_shape != other_shape {
-            panic!("The tensor shape not compatible for inplace division")
-        }
-        self.data
-            .iter_mut()
-            .zip(other.data().iter())
-            .for_each(|(a, &b)| {
-                *a /= b;
-            });
+        self.binary_op_inplace(other, |a, b| *a /= b);
     }
 
     pub fn matmul(&self, other: &Tensor) -> Result<Tensor, TensorError> {
