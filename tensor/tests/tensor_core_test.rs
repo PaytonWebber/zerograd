@@ -9,7 +9,7 @@ fn create_tensor_from_data() {
     let length: usize = shape.iter().product();
     let data: Vec<f32> = (0..length).map(|v| v as f32 + 10.0).collect();
     let expected_data: Vec<f32> = data.to_vec();
-    let a = Tensor::new(shape.clone(), data).unwrap();
+    let a = Tensor::new(shape.as_slice(), data).unwrap();
 
     assert_eq!(shape, *a.shape());
     assert_eq!(strides, *a.strides());
@@ -51,7 +51,7 @@ fn reshape_tensor_valid_shape() {
 
     let new_shape = vec![2, 2, 2];
     let new_strides = vec![4, 2, 1];
-    a.reshape(new_shape.clone()).unwrap();
+    a.reshape(&new_shape).unwrap();
 
     assert_eq!(new_shape, *a.shape());
     assert_eq!(new_strides, *a.strides());
@@ -63,7 +63,7 @@ fn reshape_tensor_invalid_shape() {
     let mut a = Tensor::ones(original_shape);
 
     let new_shape = vec![7, 6];
-    if a.reshape(new_shape).is_ok() {
+    if a.reshape(&new_shape).is_ok() {
         panic!("The new shape should've been invalid.");
     }
 }
@@ -76,7 +76,7 @@ fn permute_tensor_valid_order() {
     let permutation = vec![1, 2, 0];
     let new_strides = vec![2, 1, 8];
     let new_shape = vec![4, 2, 1];
-    a.permute(permutation).unwrap();
+    a.permute(&permutation).unwrap();
 
     assert_eq!(new_shape, *a.shape());
     assert_eq!(new_strides, *a.strides());
@@ -88,7 +88,7 @@ fn permute_tensor_index_out_of_range() {
     let mut a = Tensor::ones(original_shape);
 
     let permutation = vec![4, 2, 1]; // invalid since original_shape.len() = 2
-    if a.permute(permutation).is_ok() {
+    if a.permute(&permutation).is_ok() {
         panic!("The permutation should've been invalid.");
     }
 }
@@ -99,7 +99,7 @@ fn permute_tensor_invalid_order() {
     let mut a = Tensor::ones(original_shape);
 
     let permutation = vec![2, 0, 1]; // not a proper permutation of [0, 1]
-    if a.permute(permutation).is_ok() {
+    if a.permute(&permutation).is_ok() {
         panic!("The permutation should've been invalid.");
     }
 }

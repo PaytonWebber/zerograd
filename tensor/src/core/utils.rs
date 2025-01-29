@@ -1,6 +1,6 @@
 use std::fmt;
 
-pub fn calculate_strides(shape: &Vec<usize>) -> Vec<usize> {
+pub fn calculate_strides(shape: &[usize]) -> Vec<usize> {
     let length: usize = shape.len();
     let mut strides = vec![1; length];
     strides.iter_mut().enumerate().for_each(|(i, stride)| {
