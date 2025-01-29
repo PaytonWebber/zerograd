@@ -13,42 +13,54 @@ pub struct Tensor {
 }
 
 impl Tensor {
-    pub fn new(shape: Vec<usize>, data: Vec<f32>) -> Result<Self, TensorError> {
-        let length: usize = shape.iter().product();
+    pub fn new<S>(shape: S, data: Vec<f32>) -> Result<Self, TensorError>
+    where
+        S: Into<Vec<usize>>,
+    {
+        let shape_vec = shape.into();
+        let length: usize = shape_vec.iter().product();
         if data.len() != length {
             return Err(TensorError::CreationError(
                 "Data does not fit within shape".to_string(),
             ));
         }
-        let strides: Vec<usize> = calculate_strides(&shape);
+        let strides: Vec<usize> = calculate_strides(&shape_vec);
         Ok(Tensor {
-            shape: shape.to_vec(),
+            shape: shape_vec,
             strides,
             data,
         })
     }
 
-    pub fn zeros(shape: Vec<usize>) -> Self {
-        let num_elements: usize = shape.iter().product();
-        let strides: Vec<usize> = calculate_strides(&shape);
+    pub fn zeros<S>(shape: S) -> Self
+    where
+        S: Into<Vec<usize>>,
+    {
+        let shape_vec = shape.into();
+        let num_elements: usize = shape_vec.iter().product();
+        let strides: Vec<usize> = calculate_strides(&shape_vec);
         Tensor {
-            shape: shape.to_vec(),
+            shape: shape_vec,
             strides,
             data: vec![0.0; num_elements],
         }
     }
 
-    pub fn ones(shape: Vec<usize>) -> Self {
-        let num_elements: usize = shape.iter().product();
-        let strides: Vec<usize> = calculate_strides(&shape);
+    pub fn ones<S>(shape: S) -> Self
+    where
+        S: Into<Vec<usize>>,
+    {
+        let shape_vec = shape.into();
+        let num_elements: usize = shape_vec.iter().product();
+        let strides: Vec<usize> = calculate_strides(&shape_vec);
         Tensor {
-            shape: shape.to_vec(),
+            shape: shape_vec,
             strides,
             data: vec![1.0; num_elements],
         }
     }
 
-    pub fn get(&self, indices: Vec<usize>) -> Option<&f32> {
+    pub fn get(&self, indices: &[usize]) -> Option<&f32> {
         if indices.len() != self.shape.len() {
             return None;
         }
@@ -63,15 +75,15 @@ impl Tensor {
         self.data.get(idx)
     }
 
-    pub fn shape(&self) -> &Vec<usize> {
+    pub fn shape(&self) -> &[usize] {
         &self.shape
     }
 
-    pub fn strides(&self) -> &Vec<usize> {
+    pub fn strides(&self) -> &[usize] {
         &self.strides
     }
 
-    pub fn data(&self) -> &Vec<f32> {
+    pub fn data(&self) -> &[f32] {
         &self.data
     }
 

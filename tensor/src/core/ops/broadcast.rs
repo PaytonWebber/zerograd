@@ -1,6 +1,6 @@
-pub fn is_broadcastable(a: &Vec<usize>, b: &Vec<usize>) -> bool {
+pub fn is_broadcastable(a_shape: &[usize], b_shape: &[usize]) -> bool {
     // This is based on NumPy's rules: https://numpy.org/doc/stable/user/basics.broadcasting.html
-    for (i, j) in a.iter().rev().zip(b.iter().rev()) {
+    for (i, j) in a_shape.iter().rev().zip(b_shape.iter().rev()) {
         if *i == 1 || *j == 1 {
             continue;
         }
@@ -12,8 +12,8 @@ pub fn is_broadcastable(a: &Vec<usize>, b: &Vec<usize>) -> bool {
 }
 
 pub fn compute_broadcast_shape_and_strides(
-    a_shape: &Vec<usize>,
-    b_shape: &Vec<usize>,
+    a_shape: &[usize],
+    b_shape: &[usize],
 ) -> (Vec<usize>, Vec<usize>, Vec<usize>) {
     let ndims = a_shape.len().max(b_shape.len());
     let mut a_bc_strides = vec![1; ndims];

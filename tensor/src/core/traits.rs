@@ -29,9 +29,9 @@ impl fmt::Display for Tensor {
     }
 }
 
-impl Index<Vec<usize>> for Tensor {
+impl Index<&[usize]> for Tensor {
     type Output = f32;
-    fn index(&self, indices: Vec<usize>) -> &Self::Output {
+    fn index(&self, indices: &[usize]) -> &Self::Output {
         self.get(indices).expect("Index out of bounds")
     }
 }
@@ -52,7 +52,7 @@ impl Add<f32> for &Tensor {
 
     fn add(self, rhs: f32) -> Self::Output {
         let result_data: Vec<f32> = self.data().iter().map(|&x| x + rhs).collect();
-        Tensor::new(self.shape().clone(), result_data).unwrap()
+        Tensor::new(self.shape(), result_data).unwrap()
     }
 }
 
@@ -61,7 +61,7 @@ impl Add<&Tensor> for f32 {
 
     fn add(self, rhs: &Tensor) -> Self::Output {
         let result_data: Vec<f32> = rhs.data().iter().map(|&x| x + self).collect();
-        Tensor::new(rhs.shape().clone(), result_data).unwrap()
+        Tensor::new(rhs.shape(), result_data).unwrap()
     }
 }
 
@@ -103,7 +103,7 @@ impl Sub<f32> for &Tensor {
 
     fn sub(self, rhs: f32) -> Self::Output {
         let result_data: Vec<f32> = self.data().iter().map(|&x| x - rhs).collect();
-        Tensor::new(self.shape().clone(), result_data).unwrap()
+        Tensor::new(self.shape(), result_data).unwrap()
     }
 }
 
@@ -112,7 +112,7 @@ impl Sub<&Tensor> for f32 {
 
     fn sub(self, rhs: &Tensor) -> Self::Output {
         let result_data: Vec<f32> = rhs.data().iter().map(|&x| x - self).collect();
-        Tensor::new(rhs.shape().clone(), result_data).unwrap()
+        Tensor::new(rhs.shape(), result_data).unwrap()
     }
 }
 
@@ -154,7 +154,7 @@ impl Mul<f32> for &Tensor {
 
     fn mul(self, rhs: f32) -> Self::Output {
         let result_data: Vec<f32> = self.data().iter().map(|&x| x * rhs).collect();
-        Tensor::new(self.shape().clone(), result_data).unwrap()
+        Tensor::new(self.shape(), result_data).unwrap()
     }
 }
 
@@ -163,7 +163,7 @@ impl Mul<&Tensor> for f32 {
 
     fn mul(self, rhs: &Tensor) -> Self::Output {
         let result_data: Vec<f32> = rhs.data().iter().map(|&x| x * self).collect();
-        Tensor::new(rhs.shape().clone(), result_data).unwrap()
+        Tensor::new(rhs.shape(), result_data).unwrap()
     }
 }
 
@@ -205,7 +205,7 @@ impl Div<f32> for &Tensor {
 
     fn div(self, rhs: f32) -> Self::Output {
         let result_data: Vec<f32> = self.data().iter().map(|&x| x / rhs).collect();
-        Tensor::new(self.shape().clone(), result_data).unwrap()
+        Tensor::new(self.shape(), result_data).unwrap()
     }
 }
 

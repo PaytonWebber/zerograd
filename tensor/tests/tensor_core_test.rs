@@ -111,7 +111,7 @@ fn flatten_tensor() {
     let mut a = Tensor::ones(vec![7, 6]);
 
     a.flatten();
-    let elem: f32 = a[vec![22]];
+    let elem: f32 = a[&[22]];
     assert_eq!(vec![length], *a.shape());
     assert_eq!(vec![1], *a.strides());
     assert_eq!(expected_data, *a.data());
@@ -140,12 +140,12 @@ fn transpose_tensor() {
     // A^T[0, 0] = 1, A^T[0, 1] = 4
     // A^T[1, 0] = 2, A^T[1, 1] = 5
     // A^T[2, 0] = 3, A^T[2, 1] = 6
-    assert_eq!(a[vec![0, 0]], 1.0);
-    assert_eq!(a[vec![1, 0]], 2.0);
-    assert_eq!(a[vec![2, 0]], 3.0);
-    assert_eq!(a[vec![0, 1]], 4.0);
-    assert_eq!(a[vec![1, 1]], 5.0);
-    assert_eq!(a[vec![2, 1]], 6.0);
+    assert_eq!(a[&[0, 0]], 1.0);
+    assert_eq!(a[&[1, 0]], 2.0);
+    assert_eq!(a[&[2, 0]], 3.0);
+    assert_eq!(a[&[0, 1]], 4.0);
+    assert_eq!(a[&[1, 1]], 5.0);
+    assert_eq!(a[&[2, 1]], 6.0);
 }
 
 /* REDUCTION OPS */
@@ -762,10 +762,10 @@ fn get_element_with_index() {
     let data = vec![1.0_f32, 2.0, 3.0, 4.0, 5.0, 6.0];
     let a = Tensor::new(shape, data).unwrap();
 
-    assert_eq!(a[vec![0, 0]], 1.0);
-    assert_eq!(a[vec![0, 1]], 2.0);
-    assert_eq!(a[vec![0, 2]], 3.0);
-    assert_eq!(a[vec![1, 0]], 4.0);
-    assert_eq!(a[vec![1, 1]], 5.0);
-    assert_eq!(a[vec![1, 2]], 6.0);
+    assert_eq!(a[&[0, 0]], 1.0);
+    assert_eq!(a[&[0, 1]], 2.0);
+    assert_eq!(a[&[0, 2]], 3.0);
+    assert_eq!(a[&[1, 0]], 4.0);
+    assert_eq!(a[&[1, 1]], 5.0);
+    assert_eq!(a[&[1, 2]], 6.0);
 }

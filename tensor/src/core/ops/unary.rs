@@ -6,7 +6,7 @@ impl Tensor {
         F: Fn(f32) -> f32,
     {
         let result_data: Vec<f32> = self.data().iter().map(|x| op(*x)).collect();
-        return Tensor::new(self.shape().clone(), result_data).unwrap();
+        return Tensor::new(self.shape(), result_data).unwrap();
     }
 
     pub fn exp(&self) -> Tensor {
