@@ -41,61 +41,60 @@ use tensor::Tensor;
    let data: Vec<f32> = (0..length).map(|v| v as f32 + 10.0).collect();
 
    // Create a Tensor, ensuring data.len() matches the product of shape
-   let a = Tensor::new(shape.clone(), data).unwrap();
+   let a = Tensor::new(shape, data).unwrap();
    ```
 2. **Zeros and Ones**  
    ```rust
    // 4x2 filled with zeros
-   let zeros_tensor = Tensor::zeros(vec![4, 2]);
+   let zeros_tensor = Tensor::zeros(&[4, 2]);
 
    // 1x9x2x5 filled with ones
-   let ones_tensor = Tensor::ones(vec![1, 9, 2, 5]);
+   let ones_tensor = Tensor::ones(&[1, 9, 2, 5]);
    ```
 
 ### 2. Indexing and Accessing Data
 
 - **Indexing** via `Index<Vec<usize>>`:  
   ```rust
-  let t = Tensor::ones(vec![2, 3]);
-  // t[vec![row, col]]
-  assert_eq!(t[vec![0, 2]], 1.0_f32);
+  let t = Tensor::ones(&[2, 3]);
+  // t[&[row, col]]
+  assert_eq!(t[&[0, 2]], 1.0_f32);
   ```
 - **Check `.shape()` and `.strides()`**:  
   ```rust
-  println!("Shape = {:?}", t.shape());   // e.g. [2, 3]
-  println!("Strides = {:?}", t.strides()); // e.g. [3, 1]
+  println!("Shape = {:?}", t.shape());     // [2, 3]
+  println!("Strides = {:?}", t.strides()); // [3, 1]
   ```
 - **Access raw data**:
   ```rust
-  let data_ref: &Vec<f32> = t.data();
-  // or get mutable reference with t.data_mut()
+  let data_ref: &[f32] = t.data();
   ```
 
 ### 3. Movement Ops: Reshaping, Permuting, Flattening, Transposing
 
 1. **Reshape**  
    ```rust
-   let mut a = Tensor::ones(vec![4, 2]);
-   a.reshape(vec![2, 2, 2]).unwrap(); 
+   let mut a = Tensor::ones(&[4, 2]);
+   a.reshape(&[2, 2, 2]).unwrap(); 
    // shape is now [2, 2, 2]
    ```
 2. **Permute** (change dimension ordering)  
    ```rust
-   let mut a = Tensor::ones(vec![1, 4, 2]);
+   let mut a = Tensor::ones(&[1, 4, 2]);
    // reorder dimensions to [1->4, 4->2, 2->1]
-   a.permute(vec![1, 2, 0]).unwrap();  
+   a.permute(&[1, 2, 0]).unwrap();  
    // shape is now [4, 2, 1]
-   // strides updated accordingly
+   // strides are now [2, 1, 8] as the data was not changed
    ```
 3. **Flatten**  
    ```rust
-   let mut a = Tensor::ones(vec![7, 6]);
+   let mut a = Tensor::ones(&[7, 6]);
    a.flatten();
    // shape becomes [42], strides is [1]
    ```
 4. **Transpose**  
    ```rust
-   let mut a = Tensor::new(vec![2, 3], vec![1., 2., 3., 4., 5., 6.]).unwrap();
+   let mut a = Tensor::new(&[2, 3], vec![1., 2., 3., 4., 5., 6.]).unwrap();
    a.transpose().unwrap();
    // shape is now [3, 2], data is reordered
    ```
@@ -116,15 +115,14 @@ They also have matching **trait operators**:
 #### a) Simple Elementwise
 
 ```rust
-let a = Tensor::ones(vec![2, 3]);
-let b = Tensor::ones(vec![2, 3]);
+let a = Tensor::ones(&[2, 3]);
+let b = Tensor::ones(&[2, 3]);
 
 // Out-of-place
 let c = a.add(&b).unwrap();  // or &a + &b
-// c has all 2.0 values
 
 // In-place
-let mut d = Tensor::zeros(vec![2, 3]);
+let mut d = Tensor::zeros(&[2, 3]);
 d.add_inplace(&c);
 ```
 
@@ -170,13 +168,13 @@ let c = a.matmul(&b).unwrap();
 2. **Sum Along a Dimension**  
    ```rust
    let reduced = a.sum_dim(1).unwrap();
-   // For shape [2, 3], sum_dim(1) -> shape [2], data is sum across columns
-   // e.g. [6., 15.]
+   // For shape [2, 3], sum_dim(1) -> shape [2],
+   // data is sum across columns [6., 15.]
    ```
 3. **Mean** and **Mean Along Dimension**  
    ```rust
-   let m = a.mean();          // overall mean
-   let m_dim = a.mean_dim(0); // per-row or per-col mean
+   let m = a.mean();          
+   let m_dim = a.mean_dim(0);
    ```
 
 ### 6. Unary Ops
