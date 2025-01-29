@@ -1,13 +1,12 @@
 # tensor
 
-**tensor** is a subcrate of the [zerograd] project that I am currently working on. This crate provides the core **tensor** data structure and operations (e.g., broadcasting, reshaping, arithmetic ops) that power will eventually be used with an automatic-differentiation engine.
+**tensor** is a subcrate of the **zerograd** project that I am currently working on. This crate provides the core **Tensor** data structure and operations (e.g., broadcasting, reshaping, arithmetic ops) that will eventually be integrated with an automatic-differentiation engine.
 
 ---
 
 ## Table of Contents
 1. [Features](#features)  
 2. [Usage](#usage)  
-3. [Examples](#examples)  
 
 ---
 
@@ -203,4 +202,4 @@ println!("{}", a);
 // tensor([[0.0000, 1.0000, 2.0000]
 //         [3.0000, 4.0000, 5.0000]])
 ```
-For more examples, see the [`tests` folder](tests).
+For more examples, see the [`tests`](tests) directory.
