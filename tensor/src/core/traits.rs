@@ -1,9 +1,10 @@
 use crate::core::utils::print_tensor_recursive;
+use crate::core::Numeric;
 use crate::Tensor;
 use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Sub, SubAssign};
 
-impl fmt::Display for Tensor {
+impl<T: Numeric> fmt::Display for Tensor<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.shape.is_empty() {
             if let Some(value) = self.data.first() {
@@ -29,17 +30,17 @@ impl fmt::Display for Tensor {
     }
 }
 
-impl Index<&[usize]> for Tensor {
-    type Output = f32;
+impl<T: Numeric> Index<&[usize]> for Tensor<T> {
+    type Output = T;
     fn index(&self, indices: &[usize]) -> &Self::Output {
         self.get(indices).expect("Index out of bounds")
     }
 }
 
-impl Add<&Tensor> for &Tensor {
-    type Output = Tensor;
+impl<T: Numeric> Add<&Tensor<T>> for &Tensor<T> {
+    type Output = Tensor<T>;
 
-    fn add(self, rhs: &Tensor) -> Self::Output {
+    fn add(self, rhs: &Tensor<T>) -> Self::Output {
         match Tensor::add(&self, &rhs) {
             Ok(result) => result,
             Err(_) => panic!("Shapes of the tensors do not match for addition."),
@@ -47,26 +48,18 @@ impl Add<&Tensor> for &Tensor {
     }
 }
 
-impl Add<f32> for &Tensor {
-    type Output = Tensor;
+impl<T: Numeric> Add<T> for &Tensor<T> {
+    type Output = Tensor<T>;
 
-    fn add(self, rhs: f32) -> Self::Output {
-        let result_data: Vec<f32> = self.data().iter().map(|&x| x + rhs).collect();
+    fn add(self, rhs: T) -> Self::Output {
+        let result_data: Vec<T> = self.data().iter().map(|&x| x + rhs).collect();
         Tensor::new(self.shape(), result_data).unwrap()
     }
 }
 
-impl Add<&Tensor> for f32 {
-    type Output = Tensor;
 
-    fn add(self, rhs: &Tensor) -> Self::Output {
-        let result_data: Vec<f32> = rhs.data().iter().map(|&x| x + self).collect();
-        Tensor::new(rhs.shape(), result_data).unwrap()
-    }
-}
-
-impl AddAssign<&Tensor> for Tensor {
-    fn add_assign(&mut self, rhs: &Tensor) {
+impl<T: Numeric> AddAssign<&Tensor<T>> for Tensor<T> {
+    fn add_assign(&mut self, rhs: &Tensor<T>) {
         if *self.shape() != *rhs.shape() {
             panic!("The tensor shape not compatible for inplace addition")
         }
@@ -74,23 +67,23 @@ impl AddAssign<&Tensor> for Tensor {
             .iter_mut()
             .zip(rhs.data().iter())
             .for_each(|(a, b)| {
-                *a += b;
+                *a += *b;
             });
     }
 }
 
-impl AddAssign<f32> for Tensor {
-    fn add_assign(&mut self, rhs: f32) {
+impl<T: Numeric> AddAssign<T> for Tensor<T> {
+    fn add_assign(&mut self, rhs: T) {
         self.data.iter_mut().for_each(|a| {
             *a += rhs;
         });
     }
 }
 
-impl Sub<&Tensor> for &Tensor {
-    type Output = Tensor;
+impl<T: Numeric> Sub<&Tensor<T>> for &Tensor<T> {
+    type Output = Tensor<T>;
 
-    fn sub(self, rhs: &Tensor) -> Self::Output {
+    fn sub(self, rhs: &Tensor<T>) -> Self::Output {
         match Tensor::sub(&self, &rhs) {
             Ok(result) => result,
             Err(_) => panic!("Shapes of the tensors do not match for subtraction."),
@@ -98,26 +91,18 @@ impl Sub<&Tensor> for &Tensor {
     }
 }
 
-impl Sub<f32> for &Tensor {
-    type Output = Tensor;
+impl<T: Numeric> Sub<T> for &Tensor<T> {
+    type Output = Tensor<T>;
 
-    fn sub(self, rhs: f32) -> Self::Output {
-        let result_data: Vec<f32> = self.data().iter().map(|&x| x - rhs).collect();
+    fn sub(self, rhs: T) -> Self::Output {
+        let result_data: Vec<T> = self.data().iter().map(|&x| x - rhs).collect();
         Tensor::new(self.shape(), result_data).unwrap()
     }
 }
 
-impl Sub<&Tensor> for f32 {
-    type Output = Tensor;
 
-    fn sub(self, rhs: &Tensor) -> Self::Output {
-        let result_data: Vec<f32> = rhs.data().iter().map(|&x| x - self).collect();
-        Tensor::new(rhs.shape(), result_data).unwrap()
-    }
-}
-
-impl SubAssign<&Tensor> for Tensor {
-    fn sub_assign(&mut self, rhs: &Tensor) {
+impl<T: Numeric> SubAssign<&Tensor<T>> for Tensor<T> {
+    fn sub_assign(&mut self, rhs: &Tensor<T>) {
         if *self.shape() != *rhs.shape() {
             panic!("The tensor shape not compatible for inplace subtraction")
         }
@@ -125,23 +110,23 @@ impl SubAssign<&Tensor> for Tensor {
             .iter_mut()
             .zip(rhs.data().iter())
             .for_each(|(a, b)| {
-                *a -= b;
+                *a -= *b;
             });
     }
 }
 
-impl SubAssign<f32> for Tensor {
-    fn sub_assign(&mut self, rhs: f32) {
+impl<T: Numeric> SubAssign<T> for Tensor<T> {
+    fn sub_assign(&mut self, rhs: T) {
         self.data.iter_mut().for_each(|a| {
             *a -= rhs;
         });
     }
 }
 
-impl Mul<&Tensor> for &Tensor {
-    type Output = Tensor;
+impl<T: Numeric> Mul<&Tensor<T>> for &Tensor<T> {
+    type Output = Tensor<T>;
 
-    fn mul(self, rhs: &Tensor) -> Self::Output {
+    fn mul(self, rhs: &Tensor<T>) -> Self::Output {
         match Tensor::mul(&self, &rhs) {
             Ok(result) => result,
             Err(_) => panic!("Shapes of the tensors do not match for multiplication."),
@@ -149,26 +134,18 @@ impl Mul<&Tensor> for &Tensor {
     }
 }
 
-impl Mul<f32> for &Tensor {
-    type Output = Tensor;
+impl<T: Numeric> Mul<T> for &Tensor<T> {
+    type Output = Tensor<T>;
 
-    fn mul(self, rhs: f32) -> Self::Output {
-        let result_data: Vec<f32> = self.data().iter().map(|&x| x * rhs).collect();
+    fn mul(self, rhs: T) -> Self::Output {
+        let result_data: Vec<T> = self.data().iter().map(|&x| x * rhs).collect();
         Tensor::new(self.shape(), result_data).unwrap()
     }
 }
 
-impl Mul<&Tensor> for f32 {
-    type Output = Tensor;
 
-    fn mul(self, rhs: &Tensor) -> Self::Output {
-        let result_data: Vec<f32> = rhs.data().iter().map(|&x| x * self).collect();
-        Tensor::new(rhs.shape(), result_data).unwrap()
-    }
-}
-
-impl MulAssign<&Tensor> for Tensor {
-    fn mul_assign(&mut self, rhs: &Tensor) {
+impl<T: Numeric> MulAssign<&Tensor<T>> for Tensor<T> {
+    fn mul_assign(&mut self, rhs: &Tensor<T>) {
         if *self.shape() != *rhs.shape() {
             panic!("The tensor shape not compatible for inplace subtraction")
         }
@@ -176,23 +153,23 @@ impl MulAssign<&Tensor> for Tensor {
             .iter_mut()
             .zip(rhs.data().iter())
             .for_each(|(a, b)| {
-                *a *= b;
+                *a *= *b;
             });
     }
 }
 
-impl MulAssign<f32> for Tensor {
-    fn mul_assign(&mut self, rhs: f32) {
+impl<T: Numeric> MulAssign<T> for Tensor<T> {
+    fn mul_assign(&mut self, rhs: T) {
         self.data.iter_mut().for_each(|a| {
             *a *= rhs;
         });
     }
 }
 
-impl Div<&Tensor> for &Tensor {
-    type Output = Tensor;
+impl<T: Numeric> Div<&Tensor<T>> for &Tensor<T> {
+    type Output = Tensor<T>;
 
-    fn div(self, rhs: &Tensor) -> Self::Output {
+    fn div(self, rhs: &Tensor<T>) -> Self::Output {
         match Tensor::div(&self, &rhs) {
             Ok(result) => result,
             Err(_) => panic!("Shapes of the tensors do not match for division."),
@@ -200,17 +177,17 @@ impl Div<&Tensor> for &Tensor {
     }
 }
 
-impl Div<f32> for &Tensor {
-    type Output = Tensor;
+impl<T: Numeric> Div<T> for &Tensor<T> {
+    type Output = Tensor<T>;
 
-    fn div(self, rhs: f32) -> Self::Output {
-        let result_data: Vec<f32> = self.data().iter().map(|&x| x / rhs).collect();
+    fn div(self, rhs: T) -> Self::Output {
+        let result_data: Vec<T> = self.data().iter().map(|&x| x / rhs).collect();
         Tensor::new(self.shape(), result_data).unwrap()
     }
 }
 
-impl DivAssign<&Tensor> for Tensor {
-    fn div_assign(&mut self, rhs: &Tensor) {
+impl<T: Numeric> DivAssign<&Tensor<T>> for Tensor<T> {
+    fn div_assign(&mut self, rhs: &Tensor<T>) {
         if *self.shape() != *rhs.shape() {
             panic!("The tensor shape not compatible for inplace subtraction")
         }
@@ -218,13 +195,13 @@ impl DivAssign<&Tensor> for Tensor {
             .iter_mut()
             .zip(rhs.data().iter())
             .for_each(|(a, b)| {
-                *a /= b;
+                *a /= *b;
             });
     }
 }
 
-impl DivAssign<f32> for Tensor {
-    fn div_assign(&mut self, rhs: f32) {
+impl<T: Numeric> DivAssign<T> for Tensor<T> {
+    fn div_assign(&mut self, rhs: T) {
         self.data.iter_mut().for_each(|a| {
             *a /= rhs;
         });
