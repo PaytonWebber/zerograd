@@ -1,7 +1,7 @@
-use crate::core::{calculate_strides, TensorError};
+use crate::core::{calculate_strides, TensorError, Numeric};
 use crate::Tensor;
 
-impl Tensor {
+impl<T: Numeric> Tensor<T> {
     pub fn reshape(&mut self, shape: &[usize]) -> Result<(), TensorError> {
         let new_length: usize = shape.iter().product();
         let current_length: usize = self.shape.iter().product();
@@ -51,7 +51,7 @@ impl Tensor {
         }
 
         let (m, n) = (self.shape[0], self.shape[1]);
-        let mut new_data = vec![0.0_f32; self.data.len()];
+        let mut new_data = vec![T::zero(); self.data.len()];
         for i in 0..m {
             for j in 0..n {
                 let old_idx = i * n + j;

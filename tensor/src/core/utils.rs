@@ -1,4 +1,5 @@
 use std::fmt;
+use crate::core::Numeric;
 
 pub fn calculate_strides(shape: &[usize]) -> Vec<usize> {
     let length: usize = shape.len();
@@ -29,9 +30,9 @@ fn calculate_data_index(indices: &[usize], strides: &[usize]) -> usize {
         .sum()
 }
 
-pub fn print_tensor_recursive(
+pub fn print_tensor_recursive<T: Numeric>(
     f: &mut fmt::Formatter<'_>,
-    data: &[f32],
+    data: &[T],
     shape: &[usize],
     strides: &[usize],
     current_index: &mut [usize],
@@ -40,7 +41,7 @@ pub fn print_tensor_recursive(
 ) -> fmt::Result {
     if ndims == 0 {
         if let Some(value) = data.first() {
-            return write!(f, "{:.4}", value);
+            return write!(f, "{}", value);
         } else {
             return write!(f, "");
         }
@@ -54,7 +55,7 @@ pub fn print_tensor_recursive(
             if i > 0 {
                 write!(f, ", ")?;
             }
-            write!(f, "{:.4}", data[idx])?;
+            write!(f, "{}", data[idx])?;
         }
         write!(f, "]")?;
     } else {

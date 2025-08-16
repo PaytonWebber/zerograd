@@ -1,12 +1,12 @@
 use super::broadcast::{compute_broadcast_shape_and_strides, is_broadcastable};
 use crate::core::utils::unravel_index;
-use crate::core::TensorError;
+use crate::core::{TensorError, Numeric};
 use crate::Tensor;
 
-impl Tensor {
-    fn binary_op<F>(&self, other: &Tensor, op: F) -> Result<Tensor, TensorError>
+impl<T: Numeric> Tensor<T> {
+    fn binary_op<F>(&self, other: &Tensor<T>, op: F) -> Result<Tensor<T>, TensorError>
     where
-        F: Fn(f32, f32) -> f32,
+        F: Fn(T, T) -> T,
     {
         let self_shape = self.shape();
         let other_shape = other.shape();
@@ -17,7 +17,7 @@ impl Tensor {
         }
 
         if self_shape == other_shape {
-            let result_data: Vec<f32> = self
+            let result_data: Vec<T> = self
                 .data
                 .iter()
                 .zip(other.data.iter())
@@ -32,7 +32,7 @@ impl Tensor {
         let self_data = self.data();
         let other_data = other.data();
         let result_size: usize = bc_shape.iter().product();
-        let mut result_data: Vec<f32> = Vec::with_capacity(result_size);
+        let mut result_data: Vec<T> = Vec::with_capacity(result_size);
 
         for i in 0..result_size {
             let multi_idx = unravel_index(i, &bc_shape);
@@ -50,9 +50,9 @@ impl Tensor {
         Tensor::new(bc_shape, result_data)
     }
 
-    fn binary_op_inplace<F>(&mut self, other: &Tensor, op: F)
+    fn binary_op_inplace<F>(&mut self, other: &Tensor<T>, op: F)
     where
-        F: Fn(&mut f32, f32),
+        F: Fn(&mut T, T),
     {
         let self_shape = self.shape();
         let other_shape = other.shape();
@@ -69,39 +69,39 @@ impl Tensor {
             });
     }
 
-    pub fn add(&self, other: &Tensor) -> Result<Tensor, TensorError> {
+    pub fn add(&self, other: &Tensor<T>) -> Result<Tensor<T>, TensorError> {
         self.binary_op(other, |a, b| a + b)
     }
 
-    pub fn add_inplace(&mut self, other: &Tensor) {
+    pub fn add_inplace(&mut self, other: &Tensor<T>) {
         self.binary_op_inplace(other, |a, b| *a += b);
     }
 
-    pub fn sub(&self, other: &Tensor) -> Result<Tensor, TensorError> {
+    pub fn sub(&self, other: &Tensor<T>) -> Result<Tensor<T>, TensorError> {
         self.binary_op(other, |a, b| a - b)
     }
 
-    pub fn sub_inplace(&mut self, other: &Tensor) {
+    pub fn sub_inplace(&mut self, other: &Tensor<T>) {
         self.binary_op_inplace(other, |a, b| *a -= b);
     }
 
-    pub fn mul(&self, other: &Tensor) -> Result<Tensor, TensorError> {
+    pub fn mul(&self, other: &Tensor<T>) -> Result<Tensor<T>, TensorError> {
         self.binary_op(other, |a, b| a * b)
     }
 
-    pub fn mul_inplace(&mut self, other: &Tensor) {
+    pub fn mul_inplace(&mut self, other: &Tensor<T>) {
         self.binary_op_inplace(other, |a, b| *a *= b);
     }
 
-    pub fn div(&self, other: &Tensor) -> Result<Tensor, TensorError> {
+    pub fn div(&self, other: &Tensor<T>) -> Result<Tensor<T>, TensorError> {
         self.binary_op(other, |a, b| a / b)
     }
 
-    pub fn div_inplace(&mut self, other: &Tensor) {
+    pub fn div_inplace(&mut self, other: &Tensor<T>) {
         self.binary_op_inplace(other, |a, b| *a /= b);
     }
 
-    pub fn matmul(&self, other: &Tensor) -> Result<Tensor, TensorError> {
+    pub fn matmul(&self, other: &Tensor<T>) -> Result<Tensor<T>, TensorError> {
         let lhs_shape = self.shape();
         let rhs_shape = other.shape();
         if lhs_shape.len() != 2 || rhs_shape.len() != 2 {
@@ -120,7 +120,7 @@ impl Tensor {
 
         let lhs_data = self.data();
         let rhs_data = other.data();
-        let mut result_data: Vec<f32> = vec![0.0_f32; rows_left * cols_right];
+        let mut result_data: Vec<T> = vec![T::zero(); rows_left * cols_right];
         for i in 0..rows_left {
             for k in 0..cols_left {
                 for j in 0..cols_right {
@@ -129,6 +129,6 @@ impl Tensor {
                 }
             }
         }
-        Ok(Tensor::new(vec![rows_left, cols_right], result_data).unwrap())
+        Tensor::new(vec![rows_left, cols_right], result_data)
     }
 }

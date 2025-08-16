@@ -1,31 +1,31 @@
-use crate::Tensor;
+use crate::{Tensor, core::Numeric};
 
-impl Tensor {
-    fn unary_op<F>(&self, op: F) -> Tensor
+impl<T: Numeric> Tensor<T> {
+    fn unary_op<F>(&self, op: F) -> Tensor<T>
     where
-        F: Fn(f32) -> f32,
+        F: Fn(T) -> T,
     {
-        let result_data: Vec<f32> = self.data().iter().map(|x| op(*x)).collect();
-        return Tensor::new(self.shape(), result_data).unwrap();
+        let result_data: Vec<T> = self.data().iter().map(|x| op(*x)).collect();
+        Tensor::new(self.shape(), result_data).unwrap()
     }
 
-    pub fn exp(&self) -> Tensor {
+    pub fn exp(&self) -> Tensor<T> {
         self.unary_op(|x| x.exp())
     }
 
-    pub fn log(&self) -> Tensor {
+    pub fn log(&self) -> Tensor<T> {
         self.unary_op(|x| {
-            if x == 0.0 {
-                f32::NEG_INFINITY // log(0) -> -inf
-            } else if x < 0.0 {
-                f32::NAN // log of negative numbers is undefined
+            if x == T::zero() {
+                T::neg_infinity()
+            } else if x.is_sign_negative() {
+                T::nan()
             } else {
                 x.ln()
             }
         })
     }
 
-    pub fn relu(&self) -> Tensor {
-        self.unary_op(|x| if x > 0.0_f32 { x } else { 0.0_f32 })
+    pub fn relu(&self) -> Tensor<T> {
+        self.unary_op(|x| if x > T::zero() { x } else { T::zero() })
     }
 }
