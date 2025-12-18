@@ -57,7 +57,6 @@ impl<T: Numeric> Add<T> for &Tensor<T> {
     }
 }
 
-
 impl<T: Numeric> AddAssign<&Tensor<T>> for Tensor<T> {
     fn add_assign(&mut self, rhs: &Tensor<T>) {
         if *self.shape() != *rhs.shape() {
@@ -99,7 +98,6 @@ impl<T: Numeric> Sub<T> for &Tensor<T> {
         Tensor::new(self.shape(), result_data).unwrap()
     }
 }
-
 
 impl<T: Numeric> SubAssign<&Tensor<T>> for Tensor<T> {
     fn sub_assign(&mut self, rhs: &Tensor<T>) {
@@ -143,11 +141,10 @@ impl<T: Numeric> Mul<T> for &Tensor<T> {
     }
 }
 
-
 impl<T: Numeric> MulAssign<&Tensor<T>> for Tensor<T> {
     fn mul_assign(&mut self, rhs: &Tensor<T>) {
         if *self.shape() != *rhs.shape() {
-            panic!("The tensor shape not compatible for inplace subtraction")
+            panic!("The tensor shape not compatible for inplace multiplication")
         }
         self.data
             .iter_mut()
@@ -189,7 +186,7 @@ impl<T: Numeric> Div<T> for &Tensor<T> {
 impl<T: Numeric> DivAssign<&Tensor<T>> for Tensor<T> {
     fn div_assign(&mut self, rhs: &Tensor<T>) {
         if *self.shape() != *rhs.shape() {
-            panic!("The tensor shape not compatible for inplace subtraction")
+            panic!("The tensor shape not compatible for inplace division")
         }
         self.data
             .iter_mut()

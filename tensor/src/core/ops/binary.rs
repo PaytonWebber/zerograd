@@ -1,6 +1,6 @@
 use super::broadcast::{compute_broadcast_shape_and_strides, is_broadcastable};
 use crate::core::utils::unravel_index;
-use crate::core::{TensorError, Numeric};
+use crate::core::{Numeric, TensorError};
 use crate::Tensor;
 
 impl<T: Numeric> Tensor<T> {

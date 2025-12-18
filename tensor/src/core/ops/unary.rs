@@ -1,4 +1,4 @@
-use crate::{Tensor, core::Numeric};
+use crate::{core::Numeric, Tensor};
 
 impl<T: Numeric> Tensor<T> {
     fn unary_op<F>(&self, op: F) -> Tensor<T>

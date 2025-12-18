@@ -1,5 +1,5 @@
 use crate::core::utils::unravel_index;
-use crate::core::{TensorError, Numeric};
+use crate::core::{Numeric, TensorError};
 use crate::Tensor;
 
 impl<T: Numeric> Tensor<T> {

@@ -1,4 +1,4 @@
-use crate::core::{calculate_strides, TensorError, Numeric};
+use crate::core::{calculate_strides, Numeric, TensorError};
 use crate::Tensor;
 
 impl<T: Numeric> Tensor<T> {
