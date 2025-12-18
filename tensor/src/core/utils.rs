@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::core::Numeric;
+use std::fmt;
 
 pub fn calculate_strides(shape: &[usize]) -> Vec<usize> {
     let length: usize = shape.len();
